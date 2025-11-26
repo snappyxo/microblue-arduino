@@ -143,12 +143,6 @@ The library includes several examples:
 
 Free for use.
 
-## Author
-
-Wei Liao - [Mechanismic Inc.](mailto:wei@mechanismic.com)
-
 ## Links
 
 - [MicroBlue App](http://www.snappyxo.io/microblue)
-- [GitHub Repository](https://github.com/snappyxo/microblue-arduino)
-- [Report Issues](https://github.com/snappyxo/microblue-arduino/issues)
