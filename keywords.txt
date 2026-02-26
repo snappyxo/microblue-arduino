@@ -1,6 +1,7 @@
 MicroBlueManager	KEYWORD1
-read	KEYWORD2
 MicroBlueMessage	KEYWORD1
 hasId	KEYWORD2
 hasValue	KEYWORD2
+read	KEYWORD2
 toString	KEYWORD2
+write	KEYWORD2

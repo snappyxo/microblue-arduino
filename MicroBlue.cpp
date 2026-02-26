@@ -62,3 +62,12 @@ MicroBlueMessage MicroBlueManager::read() {
 
   return msg;                // Return the parsed message
 }
+
+// Writes a message to the BLE stream using the protocol [1][ID][2][VALUE][3]
+void MicroBlueManager::write(const String &id, const String &value) {
+  _s.write((uint8_t)1);
+  _s.print(id);
+  _s.write((uint8_t)2);
+  _s.print(value);
+  _s.write((uint8_t)3);
+}

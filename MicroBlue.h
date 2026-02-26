@@ -35,6 +35,7 @@ class MicroBlueManager {
   public:
     explicit MicroBlueManager(Stream &s); // Constructor that takes a Stream reference
     MicroBlueMessage read();              // Reads and parses a message from the stream
+    void write(const String &id, const String &value); // Writes a message to the stream
 };
 
 #endif

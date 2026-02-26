@@ -5,7 +5,7 @@ Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBl
 ## Features
 
 - Simple message-based communication protocol
-- Easy-to-use API for reading BLE messages
+- Easy-to-use API for reading and writing BLE messages
 - Support for command ID and value pairs
 - Compatible with Arduino UNO R3 and R4 boards
 - Works with HM-10 BLE modules
@@ -90,6 +90,13 @@ void loop() {
 }
 ```
 
+### Send Data to MicroBlue
+
+```cpp
+// Send [1][status][2][ok][3]
+manager.write("status", "ok");
+```
+
 ## Message Protocol
 
 Messages follow this format:
@@ -127,6 +134,7 @@ Manages BLE communication and message parsing.
 
 #### Methods
 - `MicroBlueMessage read()` - Read and parse a message from the BLE stream
+- `void write(const String &id, const String &value)` - Write a message to the BLE stream in the format `[1][ID][2][VALUE][3]`
 
 ## Examples
 
