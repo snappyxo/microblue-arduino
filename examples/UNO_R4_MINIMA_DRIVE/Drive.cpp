@@ -4,8 +4,8 @@
  * Description:
  * Source file implementing functions for controlling a dual-motor drive system.
 
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "Drive.h"
@@ -30,8 +30,8 @@ void drive(int throttle, int steering) {
 
   // Brake if throttle is zero
   if (throttle == 0) {
-      motorBrake();
-      return;
+    motorBrake();
+    return;
   }
 
   // Set motor direction based on throttle value

@@ -4,8 +4,8 @@
  * Description:
  * Header file defining functions and constants for controlling a dual-motor drive system.
  *
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #ifndef DRIVE_H

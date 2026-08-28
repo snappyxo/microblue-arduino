@@ -6,8 +6,8 @@
  * for device control, such as turning an LED on or off based on message data. Initializes BLE and 
  * serial communication for message handling.
  * 
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"
@@ -19,17 +19,17 @@ MicroBlueManager manager(Serial1);
 const int LED = 13;
 
 void setup() {
-  Serial.begin(9600);         // Initialize USB serial communication
-  Serial1.begin(9600);        // Initialize hardware serial for BLE communication
-  pinMode(LED, OUTPUT);       // Set the LED pin as an output
+  Serial.begin(9600);    // Initialize USB serial communication
+  Serial1.begin(9600);   // Initialize hardware serial for BLE communication
+  pinMode(LED, OUTPUT);  // Set the LED pin as an output
 }
 
-void loop() { 
+void loop() {
   // Read a message from BLE
   MicroBlueMessage msg = manager.read();
 
   // Print message details if both ID and Value are valid
-  if(msg.hasId() && msg.hasValue()) {
+  if (msg.hasId() && msg.hasValue()) {
     Serial.println(msg.toString());
   }
 
@@ -38,7 +38,7 @@ void loop() {
     if (msg.value == "1") {
       digitalWrite(LED, HIGH);  // Turn LED on
     } else if (msg.value == "0") {
-      digitalWrite(LED, LOW);   // Turn LED off
+      digitalWrite(LED, LOW);  // Turn LED off
     }
   }
 }

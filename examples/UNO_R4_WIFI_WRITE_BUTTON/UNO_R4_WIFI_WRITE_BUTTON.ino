@@ -1,30 +1,24 @@
 /*
- * HM10_BLE_WRITE_BUTTON.ino
- * 
+ * UNO_R4_WIFI_WRITE_BUTTON.ino
+ *
  * Description:
- * Demonstrates sending BLE messages to MicroBlue from a physical button.
- * When the button is pressed, the sketch sends value `1`; when released,
- * it sends value `0`.
- * 
+ * Demonstrates sending BLE messages to MicroBlue from a physical button on the
+ * Arduino UNO R4 WiFi using its built-in BLE radio via `MicroBlueManager` (no
+ * HM-10 module needed). When the button is pressed, the sketch sends value
+ * `Pressed`; when released, it sends value `Released`.
+ *
  * Wiring:
- * - HM-10 TXD -> Arduino pin 7 (RX)
- * - HM-10 RXD -> Arduino pin 8 (TX)
  * - Button between pin 2 and GND (uses INPUT_PULLUP)
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"
 
-// Define BLE communication pins and create software serial for BLE
-#include "SoftwareSerial.h"
-const int rXPin = 7;
-const int tXPin = 8;
-SoftwareSerial SSerial(rXPin, tXPin);
-
-// Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(SSerial);
+// Create an instance of the MicroBlueManager for the built-in BLE radio
+// (no constructor argument = use the board's own radio instead of an HM-10)
+MicroBlueManager manager;
 
 // Button input pin and message ID for MicroBlue button widget
 const int BUTTON_PIN = 2;
@@ -39,12 +33,23 @@ unsigned long lastDebounceTime = 0;
 const unsigned long DEBOUNCE_DELAY_MS = 25;
 
 void setup() {
-  Serial.begin(9600);                 // Initialize USB serial communication
-  SSerial.begin(9600);                // Initialize software serial for BLE communication
+  Serial.begin(9600);  // Initialize USB serial communication
+
+  // Initialize built-in BLE and start advertising as "UNO R4 WIFI"
+  if (!manager.begin("UNO R4 WIFI")) {
+    Serial.println("Starting Bluetooth® Low Energy failed!");
+  }
+  Serial.println("BLE Button Peripheral, waiting for connections....");
+
   pinMode(BUTTON_PIN, INPUT_PULLUP);  // Use internal pull-up; pressed state reads LOW
 }
 
 void loop() {
+  // Only send messages while the MicroBlue app is connected
+  if (!manager.isConnected()) {
+    return;
+  }
+
   // Read current button state from the input pin
   int reading = digitalRead(BUTTON_PIN);
 

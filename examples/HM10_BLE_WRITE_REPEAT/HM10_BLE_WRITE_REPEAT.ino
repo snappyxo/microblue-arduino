@@ -9,8 +9,8 @@
  * - HM-10 TXD -> Arduino pin 7 (RX)
  * - HM-10 RXD -> Arduino pin 8 (TX)
  * 
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"
@@ -34,11 +34,11 @@ void setup() {
 }
 
 void loop() {
-  manager.write(REPEAT_ID, "1");      // Send value 1
-  Serial.println("Sent: b0=1");       // Debug output
+  manager.write(REPEAT_ID, "1");  // Send value 1
+  Serial.println("Sent: b0=1");   // Debug output
   delay(REPEAT_DELAY_MS);
 
-  manager.write(REPEAT_ID, "0");      // Send value 0
-  Serial.println("Sent: b0=0");       // Debug output
+  manager.write(REPEAT_ID, "0");  // Send value 0
+  Serial.println("Sent: b0=0");   // Debug output
   delay(REPEAT_DELAY_MS);
 }

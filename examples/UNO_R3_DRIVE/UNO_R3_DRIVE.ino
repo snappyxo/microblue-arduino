@@ -4,8 +4,8 @@
  * Description:
  * Arduino main file to control a dual-motor drive system using BLE communication.
 
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"
@@ -15,16 +15,16 @@
 #include "SoftwareSerial.h"
 const int rXPin = 7;
 const int tXPin = 8;
-SoftwareSerial SSerial(rXPin, tXPin); 
+SoftwareSerial SSerial(rXPin, tXPin);
 
 // Create an instance of the MicroBlueManager for managing messages
 MicroBlueManager manager(SSerial);
 
 // Initialize setup function
 void setup() {
-  Serial.begin(9600);         // Initialize USB serial communication
-  SSerial.begin(9600);        // Initialize software serial for BLE communication
-  setMotorPins();             // Configure motor pins for output
+  Serial.begin(9600);   // Initialize USB serial communication
+  SSerial.begin(9600);  // Initialize software serial for BLE communication
+  setMotorPins();       // Configure motor pins for output
 }
 
 // Main loop to read BLE messages and control motor drive
@@ -33,7 +33,7 @@ void loop() {
   MicroBlueMessage msg = manager.read();
 
   // Print message details if both ID and Value are valid
-  if(msg.hasId() && msg.hasValue()) {
+  if (msg.hasId() && msg.hasValue()) {
     Serial.println(msg.toString());
   }
 

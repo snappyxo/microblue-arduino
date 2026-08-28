@@ -1,6 +1,6 @@
 # MicroBlue
 
-Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBlue mobile app and Arduino boards using an HM-10 Bluetooth module.
+Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBlue mobile app and Arduino boards, using either an HM-10 Bluetooth module or the built-in BLE radio of the UNO R4 WiFi.
 
 ## Features
 
@@ -8,17 +8,17 @@ Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBl
 - Easy-to-use API for reading and writing BLE messages
 - Support for command ID and value pairs
 - Compatible with Arduino UNO R3 and R4 boards
-- Works with HM-10 BLE modules
+- One `MicroBlueManager` class for both transports: HM-10 BLE modules on any board, or the UNO R4 WiFi's built-in BLE (no HM-10 needed)
 
 ## Hardware Requirements
 
-- Arduino UNO R3 or Arduino UNO R4 Minima
-- HM-10 BLE module
+- Arduino UNO R3 or Arduino UNO R4 Minima with an HM-10 BLE module, **or**
+- Arduino UNO R4 WiFi (uses its built-in BLE radio; requires the [ArduinoBLE](https://www.arduino.cc/reference/en/libraries/arduinoble/) library)
 - MicroBlue mobile app
 
 ## Installation
 
-### Via Arduino Library Manager (Coming Soon)
+### Via Arduino Library Manager
 
 1. Open Arduino IDE
 2. Go to **Sketch** > **Include Library** > **Manage Libraries**
@@ -37,7 +37,9 @@ Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBl
 
 ## Wiring
 
-Connect the HM-10 module to your Arduino:
+No wiring is needed for BLE on the Arduino UNO R4 WiFi — it uses the built-in radio.
+
+For other boards, connect the HM-10 module to your Arduino:
 
 | HM-10 Pin | Arduino UNO R3 Pin |
 |-----------|-------------------|
@@ -90,6 +92,37 @@ void loop() {
 }
 ```
 
+### UNO R4 WiFi - Built-in BLE
+
+On the UNO R4 WiFi, construct `MicroBlueManager` with no arguments to use the board's built-in BLE radio — no HM-10 or SoftwareSerial needed:
+
+```cpp
+#include "MicroBlue.h"
+
+MicroBlueManager manager; // no argument = built-in BLE
+
+const int LED = 13;
+
+void setup() {
+  Serial.begin(9600);
+  if (!manager.begin("UNO R4 WIFI")) {
+    Serial.println("Starting BLE failed!");
+  }
+  pinMode(LED, OUTPUT);
+}
+
+void loop() {
+  if (manager.isConnected()) {
+    MicroBlueMessage msg = manager.read();
+    if (msg.id == "b0") {
+      digitalWrite(LED, msg.value == "1" ? HIGH : LOW);
+    }
+  }
+}
+```
+
+The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode too (`begin()` and `isConnected()` are harmless no-ops there, since the HM-10 manages the connection itself), so sketches can share one structure across all boards.
+
 ### Send Data to MicroBlue
 
 ```cpp
@@ -127,14 +160,17 @@ Represents a BLE message with an ID and value.
 
 ### MicroBlueManager
 
-Manages BLE communication and message parsing.
+Manages BLE communication and message parsing. One class, two transports.
 
-#### Constructor
-- `MicroBlueManager(Stream &s)` - Initialize with a Stream (Serial or SoftwareSerial)
+#### Constructors
+- `MicroBlueManager(Stream &s)` - HM-10 mode: initialize with the module's Stream (Serial or SoftwareSerial)
+- `MicroBlueManager()` - Built-in BLE mode: use the board's own radio (UNO R4 WiFi only; requires ArduinoBLE)
 
 #### Methods
-- `MicroBlueMessage read()` - Read and parse a message from the BLE stream
-- `void write(const String &id, const String &value)` - Write a message to the BLE stream in the format `[1][ID][2][VALUE][3]`
+- `bool begin(const char *deviceName = "MicroBlue")` - Start BLE advertising under the given name; returns false if the radio fails to start. In HM-10 mode this is a no-op returning true (the module advertises on its own).
+- `bool isConnected()` - Returns true while the MicroBlue app is connected. In HM-10 mode the connection state isn't visible, so this always returns true.
+- `MicroBlueMessage read()` - Read and parse the latest message; returns an empty message if nothing new arrived
+- `void write(const String &id, const String &value)` - Send a message to the app in the format `[1][ID][2][VALUE][3]`
 
 ## Examples
 
@@ -145,11 +181,14 @@ The library includes several examples:
 - **UNO_R3_DRIVE** - Dual motor control with throttle and steering
 - **UNO_R3_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
 - **UNO_R4_MINIMA_*** - Examples for Arduino UNO R4 Minima
+- **UNO_R4_WIFI_LED** - LED control over the R4 WiFi's built-in BLE
+- **UNO_R4_WIFI_SERVO** - Servo control over the R4 WiFi's built-in BLE
+- **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses to the app over the R4 WiFi's built-in BLE
 - **Rename_HM10_Bluetooth** - Utility to rename HM-10 module
 
 ## License
 
-Free for use.
+MIT License — Copyright (c) 2026 A+ Mobile Solutions Inc. See [LICENSE](LICENSE) for details.
 
 ## Links
 

@@ -14,8 +14,8 @@
  * - HC-SR04 VCC  -> 5V
  * - HC-SR04 GND  -> GND
  *
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"

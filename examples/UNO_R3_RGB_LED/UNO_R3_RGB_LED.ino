@@ -6,8 +6,8 @@
  * The `MicroBlueManager` is used to receive and process BLE commands to adjust the brightness
  * of the red, green, and blue components of the LED. Each color is controlled using PWM.
  * 
- * Developed by Mechanismic Inc.
- * Free for use.
+ * Developed by A+ Mobile Solutions Inc
+ * Licensed under the MIT License. See LICENSE for details.
  */
 
 #include "MicroBlue.h"
@@ -22,16 +22,16 @@ SoftwareSerial SSerial(rXPin, tXPin);
 MicroBlueManager manager(SSerial);
 
 // Pin declarations for RGB LED
-const int redLED = 9;    // Red LED pin
+const int redLED = 9;     // Red LED pin
 const int greenLED = 10;  // Green LED pin
 const int blueLED = 11;   // Blue LED pin
 
 void setup() {
-  Serial.begin(9600);   // Initialize USB serial communication
-  SSerial.begin(9600);  // Initialize software serial for BLE communication
-  pinMode(redLED, OUTPUT);   // Set red LED pin as output
-  pinMode(greenLED, OUTPUT); // Set green LED pin as output
-  pinMode(blueLED, OUTPUT);  // Set blue LED pin as output
+  Serial.begin(9600);         // Initialize USB serial communication
+  SSerial.begin(9600);        // Initialize software serial for BLE communication
+  pinMode(redLED, OUTPUT);    // Set red LED pin as output
+  pinMode(greenLED, OUTPUT);  // Set green LED pin as output
+  pinMode(blueLED, OUTPUT);   // Set blue LED pin as output
 }
 
 void loop() {

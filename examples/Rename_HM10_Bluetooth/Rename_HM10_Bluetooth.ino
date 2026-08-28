@@ -245,8 +245,8 @@ ModuleType identifyDevice() {
   if (s.length() == 2 && s.compareTo("OK") == 0) {
     Serial.println(F("HM-10 detected!"));
     return HM10;
-  } 
-  
+  }
+
   // check for CC41
   ble->println("");
   s = ble->readString();
