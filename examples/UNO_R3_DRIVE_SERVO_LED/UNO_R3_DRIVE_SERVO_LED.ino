@@ -29,42 +29,46 @@ const int LED_PIN = 3;    // LED pin for digital control
 void setup() {
   Serial.begin(9600);         // Initialize USB serial communication
   SSerial.begin(9600);        // Initialize software serial for BLE communication
+  manager.begin();            // Initialize MicroBlue messaging
   setMotorPins();             // Configure motor control pins
   pinMode(LED_PIN, OUTPUT);   // Set LED pin to output mode
   myServo.attach(SERVO_PIN);  // Attach servo to specified pin
 }
 
 void loop() {
-  // Read a message from BLE
-  MicroBlueMessage msg = manager.read();
+  // Only handle messages while the MicroBlue app is connected
+  if (manager.isConnected()) {
+    // Read a message from BLE
+    MicroBlueMessage msg = manager.read();
 
-  // Print message details if both ID and Value are valid
-  if (msg.hasId() && msg.hasValue()) {
-    Serial.println(msg.toString());
-  }
-
-  // Control LED based on BLE message with ID "b0"
-  if (msg.id == "b0") {
-    if (msg.value == "1") {
-      digitalWrite(LED_PIN, HIGH);  // Turn LED on
-    } else if (msg.value == "0") {
-      digitalWrite(LED_PIN, LOW);  // Turn LED off
+    // Print message details if both ID and Value are valid
+    if (msg.hasId() && msg.hasValue()) {
+      Serial.println(msg.toString());
     }
-  }
 
-  // Control servo motor based on BLE message with ID "sl0"
-  if (msg.id == "sl0") {
-    int intValue = msg.value.toInt();                // Convert value to integer
-    int servoAngle = map(intValue, 0, 100, 0, 179);  // Map value to servo angle range
-    myServo.write(servoAngle);                       // Set servo to mapped angle
-  }
+    // Control LED based on BLE message with ID "b0"
+    if (msg.id == "b0") {
+      if (msg.value == "1") {
+        digitalWrite(LED_PIN, HIGH);  // Turn LED on
+      } else if (msg.value == "0") {
+        digitalWrite(LED_PIN, LOW);  // Turn LED off
+      }
+    }
 
-  // Control drive system based on BLE message with ID "d1"
-  if (msg.id == "d1") {
-    int throttle, steering;
-    sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle);  // Parse throttle and steering values
-    throttle -= 512;                                           // Adjust to center around zero
-    steering -= 512;
-    drive(throttle, steering);  // Drive motors based on parsed values
+    // Control servo motor based on BLE message with ID "sl0"
+    if (msg.id == "sl0") {
+      int intValue = msg.value.toInt();                // Convert value to integer
+      int servoAngle = map(intValue, 0, 100, 0, 179);  // Map value to servo angle range
+      myServo.write(servoAngle);                       // Set servo to mapped angle
+    }
+
+    // Control drive system based on BLE message with ID "d1"
+    if (msg.id == "d1") {
+      int throttle, steering;
+      sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle);  // Parse throttle and steering values
+      throttle -= 512;                                           // Adjust to center around zero
+      steering -= 512;
+      drive(throttle, steering);  // Drive motors based on parsed values
+    }
   }
 }

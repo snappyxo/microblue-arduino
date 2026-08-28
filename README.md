@@ -69,24 +69,28 @@ const int LED = 13;
 void setup() {
   Serial.begin(9600);
   SSerial.begin(9600);
+  manager.begin();  // Initialize MicroBlue messaging
   pinMode(LED, OUTPUT);
 }
 
 void loop() {
-  // Read message from BLE
-  MicroBlueMessage msg = manager.read();
+  // Only handle messages while the MicroBlue app is connected
+  if (manager.isConnected()) {
+    // Read message from BLE
+    MicroBlueMessage msg = manager.read();
 
-  // Check if message is valid
-  if (msg.hasId() && msg.hasValue()) {
-    Serial.println(msg.toString());
-  }
+    // Check if message is valid
+    if (msg.hasId() && msg.hasValue()) {
+      Serial.println(msg.toString());
+    }
 
-  // Control LED based on message
-  if (msg.id == "b0") {
-    if (msg.value == "1") {
-      digitalWrite(LED, HIGH);
-    } else if (msg.value == "0") {
-      digitalWrite(LED, LOW);
+    // Control LED based on message
+    if (msg.id == "b0") {
+      if (msg.value == "1") {
+        digitalWrite(LED, HIGH);
+      } else if (msg.value == "0") {
+        digitalWrite(LED, LOW);
+      }
     }
   }
 }

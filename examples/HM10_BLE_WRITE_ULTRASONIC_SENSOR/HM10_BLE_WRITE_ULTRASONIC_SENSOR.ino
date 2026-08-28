@@ -40,11 +40,17 @@ const unsigned long MEASURE_DELAY_MS = 100;
 void setup() {
   Serial.begin(9600);   // Initialize USB serial communication
   SSerial.begin(9600);  // Initialize software serial for BLE communication
+  manager.begin();      // Initialize MicroBlue messaging
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 }
 
 void loop() {
+  // Wait for the MicroBlue app to connect
+  if (!manager.isConnected()) {
+    return;
+  }
+
   // Send a 10-microsecond pulse to trigger the sensor
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);

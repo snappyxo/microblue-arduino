@@ -41,10 +41,16 @@ const unsigned long DEBOUNCE_DELAY_MS = 25;
 void setup() {
   Serial.begin(9600);                 // Initialize USB serial communication
   SSerial.begin(9600);                // Initialize software serial for BLE communication
+  manager.begin();                    // Initialize MicroBlue messaging
   pinMode(BUTTON_PIN, INPUT_PULLUP);  // Use internal pull-up; pressed state reads LOW
 }
 
 void loop() {
+  // Wait for the MicroBlue app to connect
+  if (!manager.isConnected()) {
+    return;
+  }
+
   // Read current button state from the input pin
   int reading = digitalRead(BUTTON_PIN);
 

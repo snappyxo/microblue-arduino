@@ -31,9 +31,15 @@ const unsigned long REPEAT_DELAY_MS = 1000;
 void setup() {
   Serial.begin(9600);   // Initialize USB serial communication
   SSerial.begin(9600);  // Initialize software serial for BLE communication
+  manager.begin();      // Initialize MicroBlue messaging
 }
 
 void loop() {
+  // Wait for the MicroBlue app to connect
+  if (!manager.isConnected()) {
+    return;
+  }
+
   manager.write(REPEAT_ID, "1");  // Send value 1
   Serial.println("Sent: b0=1");   // Debug output
   delay(REPEAT_DELAY_MS);
