@@ -64,11 +64,16 @@ void loop() {
 
     // Control drive system based on BLE message with ID "d1"
     if (msg.id == "d1") {
-      int throttle, steering;
-      sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle);  // Parse throttle and steering values
-      throttle -= 512;                                           // Adjust to center around zero
-      steering -= 512;
-      drive(throttle, steering);  // Drive motors based on parsed values
+      int throttle = 512, steering = 512;  // Default to centered (stopped) if parsing fails
+      // Only drive when both numbers were parsed; otherwise brake so a
+      // malformed message can't move the motors unexpectedly.
+      if (sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle) == 2) {
+        throttle -= 512;  // Adjust to center around zero
+        steering -= 512;
+        drive(throttle, steering);  // Drive motors based on parsed values
+      } else {
+        motorBrake();  // Stop on bad input
+      }
     }
   }
 }

@@ -56,6 +56,8 @@ jobs:
               - name: ArduinoBLE
               - name: Servo
             sketch-paths: |
+              - examples/UNO_R4_WIFI_DRIVE
+              - examples/UNO_R4_WIFI_DRIVE_SERVO_LED
               - examples/UNO_R4_WIFI_LED
               - examples/UNO_R4_WIFI_SERVO
               - examples/UNO_R4_WIFI_WRITE_BUTTON

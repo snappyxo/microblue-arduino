@@ -67,7 +67,7 @@ static const char *MICROBLUE_CHARACTERISTIC_UUID = "19B10001-E8F2-537E-4F6C-D104
 
 // HM-10 mode: communicates through the module's serial stream
 MicroBlueManager::MicroBlueManager(Stream &s)
-  : _s(&s)
+  : _s(&s), _frameLength(0), _inFrame(false)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
@@ -79,7 +79,7 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
 // Built-in BLE mode: communicates through the board's own radio
 MicroBlueManager::MicroBlueManager()
-  : _s(nullptr),
+  : _s(nullptr), _frameLength(0), _inFrame(false),
     _service(MICROBLUE_SERVICE_UUID),
     _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLENotify, 100) {}
 #endif
@@ -88,7 +88,8 @@ MicroBlueManager::MicroBlueManager()
 // advertises on its own, so there is nothing to do and this returns true.
 bool MicroBlueManager::begin(const char *deviceName) {
   if (_s) {
-    return true;  // HM-10 handles advertising itself
+    (void)deviceName;  // Unused in HM-10 mode: the module keeps its own name
+    return true;       // HM-10 handles advertising itself
   }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
@@ -123,19 +124,56 @@ bool MicroBlueManager::isConnected() {
 }
 
 // Reads a message from the app, parsing ID and value.
-// Returns an empty message when nothing new has arrived.
+// Returns an empty message when no complete frame has arrived yet.
 MicroBlueMessage MicroBlueManager::read() {
-  uint8_t buffer[100];  // Buffer to hold incoming data
-
   if (_s) {
-    if (_s->available() == 0) {
-      return MicroBlueMessage();  // Nothing waiting - don't block the loop
+    // HM-10 mode: consume only the bytes already waiting, one at a time, and
+    // assemble frames across calls. This never blocks, tolerates frames split
+    // across BLE packets, and resynchronises immediately after a dropped byte
+    // or a stray module status string such as "OK+CONN".
+    while (_s->available() > 0) {
+      uint8_t b = (uint8_t)_s->read();
+
+      if (b == 1) {
+        // Start delimiter: begin a fresh frame, discarding any partial one
+        _frameLength = 0;
+        _frame[_frameLength++] = b;
+        _inFrame = true;
+        continue;
+      }
+
+      if (!_inFrame) {
+        continue;  // Not inside a frame: ignore noise and module status text
+      }
+
+      if (b == 3) {
+        // End delimiter: frame complete. Leave any following bytes in the
+        // serial buffer for the next call.
+        _inFrame = false;
+        MicroBlueMessage msg = MicroBlueMessage::parse(_frame, _frameLength);
+        _frameLength = 0;
+        return msg;
+      }
+
+      if (_frameLength >= FRAME_BUFFER_SIZE) {
+        // Oversized frame with no terminator: drop it and wait for the next start
+        _inFrame = false;
+        _frameLength = 0;
+        continue;
+      }
+
+      _frame[_frameLength++] = b;
     }
-    size_t size = _s->readBytesUntil((char)3, buffer, sizeof(buffer));  // Read until end delimiter (3)
-    return MicroBlueMessage::parse(buffer, size);
+
+    return MicroBlueMessage();  // No complete frame yet
   }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
+  uint8_t buffer[100];  // Buffer to hold incoming data
+
+  // Service the BLE stack so incoming writes and connection events are
+  // processed even if the sketch never calls isConnected().
+  BLE.poll();
   if (_characteristic.written()) {
     int size = _characteristic.readValue(buffer, sizeof(buffer));
     return MicroBlueMessage::parse(buffer, (size_t)size);
@@ -157,6 +195,7 @@ void MicroBlueManager::write(const String &id, const String &value) {
   }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
+  BLE.poll();  // Keep the BLE stack serviced in write-only sketches
   String frame;
   frame += (char)1;
   frame += id;

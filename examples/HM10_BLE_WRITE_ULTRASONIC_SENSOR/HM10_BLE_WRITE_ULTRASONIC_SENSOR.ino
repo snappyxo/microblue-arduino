@@ -37,6 +37,11 @@ const int ECHO_PIN = 10;
 const char* SENSOR_ID = "us0";
 const unsigned long MEASURE_DELAY_MS = 100;
 
+// Longest echo pulse we wait for, in microseconds. The HC-SR04 ranges to about
+// 400 cm, which is a ~23 ms round trip; 30 ms gives margin. Without a timeout,
+// pulseIn() would block the loop for a full second whenever nothing is in range.
+const unsigned long ECHO_TIMEOUT_US = 30000;
+
 void setup() {
   Serial.begin(9600);   // Initialize USB serial communication
   SSerial.begin(9600);  // Initialize software serial for BLE communication
@@ -58,20 +63,25 @@ void loop() {
   delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
 
-  // Measure the duration of the echo pulse (in microseconds)
-  long duration = pulseIn(ECHO_PIN, HIGH);
+  // Measure the duration of the echo pulse (in microseconds).
+  // Returns 0 if no echo arrives within the timeout (nothing in range).
+  long duration = pulseIn(ECHO_PIN, HIGH, ECHO_TIMEOUT_US);
 
-  // Convert to distance in centimeters:
-  // Speed of sound ~ 343 m/s = 34300 cm/s = 0.0343 cm/us
-  // The echo pulse travels to the object and back (2x the distance),
-  // so: distance = duration * 0.0343 / 2 = duration / 58.3
-  long distanceCm = duration / 58;
+  if (duration == 0) {
+    Serial.println("Distance: out of range");
+  } else {
+    // Convert to distance in centimeters:
+    // Speed of sound ~ 343 m/s = 34300 cm/s = 0.0343 cm/us
+    // The echo pulse travels to the object and back (2x the distance),
+    // so: distance = duration * 0.0343 / 2 = duration / 58.3
+    long distanceCm = duration / 58;
 
-  // Send the distance value over BLE
-  manager.write(SENSOR_ID, String(distanceCm).c_str());
-  Serial.print("Distance: ");
-  Serial.print(distanceCm);
-  Serial.println(" cm");
+    // Send the distance value over BLE
+    manager.write(SENSOR_ID, String(distanceCm));
+    Serial.print("Distance: ");
+    Serial.print(distanceCm);
+    Serial.println(" cm");
+  }
 
   delay(MEASURE_DELAY_MS);
 }

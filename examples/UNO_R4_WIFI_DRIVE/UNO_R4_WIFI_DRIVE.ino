@@ -1,9 +1,16 @@
 /*
- * UNO_R3_DRIVE.ino
+ * UNO_R4_WIFI_DRIVE.ino
  *
  * Description:
- * Arduino main file to control a dual-motor drive system using BLE communication.
-
+ * Controls a dual-motor drive system from the MicroBlue app on the Arduino
+ * UNO R4 WiFi using its built-in BLE radio via `MicroBlueManager` (no HM-10
+ * module needed). A joystick message (`d1` with value "steering,throttle",
+ * each 0-1023) is parsed and mapped to left/right motor speeds.
+ *
+ * Wiring (L298N-style motor driver, see Drive.h):
+ * - ENA -> pin 5, IN1 -> pin 4, IN2 -> pin 7 (left motor)
+ * - ENB -> pin 6, IN3 -> pin 8, IN4 -> pin 9 (right motor)
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */
@@ -11,24 +18,22 @@
 #include "MicroBlue.h"
 #include "Drive.h"
 
-// Define BLE communication pins and create software serial for BLE
-#include "SoftwareSerial.h"
-const int rXPin = 7;
-const int tXPin = 8;
-SoftwareSerial SSerial(rXPin, tXPin);
+// Create an instance of the MicroBlueManager for the built-in BLE radio
+// (no constructor argument = use the board's own radio instead of an HM-10)
+MicroBlueManager manager;
 
-// Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(SSerial);
-
-// Initialize setup function
 void setup() {
-  Serial.begin(9600);   // Initialize USB serial communication
-  SSerial.begin(9600);  // Initialize software serial for BLE communication
-  manager.begin();      // Initialize MicroBlue messaging
-  setMotorPins();       // Configure motor pins for output
+  Serial.begin(9600);  // Initialize USB serial communication
+
+  // Initialize built-in BLE and start advertising as "UNO R4 WIFI"
+  if (!manager.begin("UNO R4 WIFI")) {
+    Serial.println("Starting Bluetooth® Low Energy failed!");
+  }
+  Serial.println("BLE Drive Peripheral, waiting for connections....");
+
+  setMotorPins();  // Configure motor pins for output
 }
 
-// Main loop to read BLE messages and control motor drive
 void loop() {
   // Only handle messages while the MicroBlue app is connected
   if (manager.isConnected()) {

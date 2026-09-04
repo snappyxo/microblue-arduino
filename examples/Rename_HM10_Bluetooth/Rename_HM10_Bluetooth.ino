@@ -51,6 +51,9 @@ enum ConnectionState { NoStatePin,
 
 /// State
 Stream* ble = NULL;  // common interface of hardware/software serial
+#if defined(ARDUINO_AVR_UNO)
+SoftwareSerial* bleSoftSerial = NULL;  // owned SoftwareSerial so it can be deleted safely on retry
+#endif
 int rxPin, txPin, statePin;
 ModuleType moduleType;
 
@@ -144,11 +147,20 @@ void openBLE() {
 
   // open and create object
 #if defined(ARDUINO_AVR_UNO)
-  if (ble)
-    delete ble;
-  SoftwareSerial* ss = new SoftwareSerial(rxPin, txPin);
-  ss->begin(BLE_BAUD);
-  ble = ss;
+  // Delete through the concrete type: Stream has no virtual destructor,
+  // so deleting via the Stream* would be undefined behaviour. Deleting via
+  // the most-derived pointer is well-defined, so the compiler's
+  // non-virtual-destructor warning is a false positive here.
+  if (bleSoftSerial) {
+    bleSoftSerial->end();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdelete-non-virtual-dtor"
+    delete bleSoftSerial;
+#pragma GCC diagnostic pop
+  }
+  bleSoftSerial = new SoftwareSerial(rxPin, txPin);
+  bleSoftSerial->begin(BLE_BAUD);
+  ble = bleSoftSerial;
 #elif defined(ARDUINO_UNOR4_MINIMA) || defined(ARDUINO_UNOR4_WIFI)
   Serial1.begin(BLE_BAUD);
   ble = &Serial1;

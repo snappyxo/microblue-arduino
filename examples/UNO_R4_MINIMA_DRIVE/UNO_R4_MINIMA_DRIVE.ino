@@ -36,17 +36,21 @@ void loop() {
 
     // Check for a specific message ID to control drive system
     if (msg.id == "d1") {
-      int throttle, steering;
+      int throttle = 512, steering = 512;  // Default to centered (stopped) if parsing fails
 
-      // Parse throttle and steering values from the message value string
-      sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle);
+      // Parse throttle and steering values from the message value string.
+      // Only drive when both numbers were parsed; otherwise brake so a
+      // malformed message can't move the motors unexpectedly.
+      if (sscanf(msg.value.c_str(), "%d,%d", &steering, &throttle) == 2) {
+        // Adjust values to center at 0 (assuming incoming range of 0-1023)
+        throttle -= 512;
+        steering -= 512;
 
-      // Adjust values to center at 0 (assuming incoming range of 0-1023)
-      throttle -= 512;
-      steering -= 512;
-
-      // Control motors based on parsed throttle and steering values
-      drive(throttle, steering);
+        // Control motors based on parsed throttle and steering values
+        drive(throttle, steering);
+      } else {
+        motorBrake();  // Stop on bad input
+      }
     }
   }
 }

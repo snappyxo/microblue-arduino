@@ -18,8 +18,8 @@
 // (no constructor argument = use the board's own radio instead of an HM-10)
 MicroBlueManager manager;
 
-const int SERVO_PIN = 9;  // PWM servo pin
-Servo myServo;            // Servo instance for motor control
+const int SERVO_PIN = A0;  // Servo signal pin
+Servo myServo;             // Servo instance for motor control
 
 void setup() {
   Serial.begin(9600);  // Initialize USB serial communication

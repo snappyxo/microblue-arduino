@@ -12,8 +12,8 @@
  * Licensed under the MIT License. See LICENSE for details.
  */
 
-#ifndef __MICROBLUE__H__
-#define __MICROBLUE__H__
+#ifndef MICROBLUE_H
+#define MICROBLUE_H
 
 #include "Arduino.h"
 
@@ -48,6 +48,13 @@ class MicroBlueManager {
 private:
   Stream *_s;  // Serial stream to the HM-10, or nullptr in built-in BLE mode
 
+  // HM-10 mode frame assembly. Bytes are accumulated across read() calls so
+  // the loop never blocks waiting for the rest of a frame.
+  static const size_t FRAME_BUFFER_SIZE = 100;
+  uint8_t _frame[FRAME_BUFFER_SIZE];  // Bytes of the frame currently being received
+  size_t _frameLength;                // How many bytes of _frame are filled
+  bool _inFrame;                      // True once a start delimiter (1) has been seen
+
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
   BLEService _service;                // BLE service advertised to the MicroBlue app
   BLECharacteristic _characteristic;  // Characteristic carrying MicroBlue messages
@@ -68,7 +75,9 @@ public:
   // In HM-10 mode the connection state isn't visible, so this always returns true.
   bool isConnected();
 
-  MicroBlueMessage read();                            // Reads and parses a message from the app
+  // Reads and parses a message from the app. Never blocks: returns an empty
+  // message when no complete frame has arrived yet.
+  MicroBlueMessage read();
   void write(const String &id, const String &value);  // Writes a message to the app
 };
 

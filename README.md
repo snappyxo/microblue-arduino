@@ -41,12 +41,16 @@ No wiring is needed for BLE on the Arduino UNO R4 WiFi — it uses the built-in 
 
 For other boards, connect the HM-10 module to your Arduino:
 
-| HM-10 Pin | Arduino UNO R3 Pin |
-|-----------|-------------------|
-| VCC       | 5V                |
-| GND       | GND               |
-| TXD       | Pin 7 (RX)        |
-| RXD       | Pin 8 (TX)        |
+| HM-10 Pin | Arduino UNO R3 Pin          | Arduino UNO R4 Minima Pin |
+|-----------|-----------------------------|---------------------------|
+| VCC       | 5V                          | 5V                        |
+| GND       | GND                         | GND                       |
+| TXD       | Pin 7 (RX, SoftwareSerial)  | Pin 0 (RX, Serial1)       |
+| RXD       | Pin 8 (TX, SoftwareSerial)  | Pin 1 (TX, Serial1)       |
+
+The UNO R3 has a single hardware UART, which is used for USB, so the HM-10 examples use `SoftwareSerial` on pins 7 and 8. The UNO R4 Minima has a second hardware UART (`Serial1`) on pins 0 and 1, so the R4 Minima examples pass `Serial1` to `MicroBlueManager` instead — no `SoftwareSerial` needed.
+
+The HM-10 module ships with a default baud rate of 9600, which is what every example uses.
 
 ## Usage
 
@@ -178,21 +182,43 @@ Manages BLE communication and message parsing. One class, two transports.
 
 ## Examples
 
-The library includes several examples:
+Open them from **File > Examples > MicroBlue** in the Arduino IDE.
+
+### UNO R3 with HM-10 (SoftwareSerial on pins 7/8)
 
 - **UNO_R3_LED** - Simple LED on/off control
-- **UNO_R3_RGB_LED** - RGB LED color control
+- **UNO_R3_RGB_LED** - RGB LED color control from three sliders
 - **UNO_R3_DRIVE** - Dual motor control with throttle and steering
 - **UNO_R3_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
-- **UNO_R4_MINIMA_*** - Examples for Arduino UNO R4 Minima
-- **UNO_R4_WIFI_LED** - LED control over the R4 WiFi's built-in BLE
-- **UNO_R4_WIFI_SERVO** - Servo control over the R4 WiFi's built-in BLE
-- **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses to the app over the R4 WiFi's built-in BLE
-- **Rename_HM10_Bluetooth** - Utility to rename HM-10 module
+- **HM10_BLE_READ_LED** - Minimal read example: toggle the onboard LED from the app
+- **HM10_BLE_WRITE_BUTTON** - Send button presses and releases to the app
+- **HM10_BLE_WRITE_REPEAT** - Send an alternating 1/0 value every second
+- **HM10_BLE_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
+
+### UNO R4 Minima with HM-10 (Serial1 on pins 0/1)
+
+- **UNO_R4_MINIMA_LED** - Simple LED on/off control
+- **UNO_R4_MINIMA_RGB_LED** - RGB LED color control from three sliders
+- **UNO_R4_MINIMA_DRIVE** - Dual motor control with throttle and steering
+- **UNO_R4_MINIMA_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
+
+### UNO R4 WiFi with built-in BLE (no HM-10)
+
+- **UNO_R4_WIFI_LED** - Simple LED on/off control
+- **UNO_R4_WIFI_SERVO** - Servo control from a slider
+- **UNO_R4_WIFI_DRIVE** - Dual motor control with throttle and steering
+- **UNO_R4_WIFI_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
+- **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
+
+### Utilities
+
+- **Rename_HM10_Bluetooth** - Rename and configure an HM-10 module over AT commands (GPL v3, see License below)
 
 ## License
 
 MIT License — Copyright (c) 2026 A+ Mobile Solutions Inc. See [LICENSE](LICENSE) for details.
+
+**Exception:** the `Rename_HM10_Bluetooth` example is a standalone HM-10 configuration utility originally written by Arik Yavilevich and modified by Anurag Purwar. It is distributed under the [GPL v3](https://www.gnu.org/licenses/gpl-3.0.html), not MIT. It does not include or link against the MicroBlue library, so the library itself and all other examples remain MIT.
 
 ## Links
 

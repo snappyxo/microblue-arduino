@@ -1,9 +1,20 @@
 /*
- * UNO_R4_MINIMA_DRIVE_SERVO_LED.ino
+ * UNO_R4_WIFI_DRIVE_SERVO_LED.ino
  *
  * Description:
- * Main Arduino file for controlling an LED, a servo motor, and a drive system via BLE messages.
-
+ * Controls an LED, a servo motor, and a dual-motor drive system from the
+ * MicroBlue app on the Arduino UNO R4 WiFi using its built-in BLE radio via
+ * `MicroBlueManager` (no HM-10 module needed).
+ *
+ * Messages:
+ * - `b0`  value "1"/"0"                 -> LED on/off
+ * - `sl0` value 0-100                   -> servo angle
+ * - `d1`  value "steering,throttle"     -> motor drive (each 0-1023)
+ *
+ * Wiring:
+ * - LED -> pin 3, Servo signal -> A0
+ * - Motor driver: see Drive.h
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */
@@ -12,18 +23,24 @@
 #include "MicroBlue.h"
 #include "Drive.h"
 
-// Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(Serial1);
+// Create an instance of the MicroBlueManager for the built-in BLE radio
+// (no constructor argument = use the board's own radio instead of an HM-10)
+MicroBlueManager manager;
 
 // Hardware pin assignments
-const int SERVO_PIN = 9;  // PWM servo pin
-Servo myServo;            // Servo instance for motor control
-const int LED_PIN = 3;    // LED pin for digital control
+const int SERVO_PIN = A0;  // Servo signal pin (digital pins 4-9 are used by the motor driver)
+Servo myServo;             // Servo instance for motor control
+const int LED_PIN = 3;     // LED pin for digital control
 
 void setup() {
-  Serial.begin(9600);         // Initialize USB serial communication
-  Serial1.begin(9600);        // Initialize hardware serial for BLE communication
-  manager.begin();            // Initialize MicroBlue messaging
+  Serial.begin(9600);  // Initialize USB serial communication
+
+  // Initialize built-in BLE and start advertising as "UNO R4 WIFI"
+  if (!manager.begin("UNO R4 WIFI")) {
+    Serial.println("Starting Bluetooth® Low Energy failed!");
+  }
+  Serial.println("BLE Drive/Servo/LED Peripheral, waiting for connections....");
+
   setMotorPins();             // Configure motor control pins
   pinMode(LED_PIN, OUTPUT);   // Set LED pin to output mode
   myServo.attach(SERVO_PIN);  // Attach servo to specified pin
