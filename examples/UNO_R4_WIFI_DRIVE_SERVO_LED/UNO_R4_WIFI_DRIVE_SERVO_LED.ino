@@ -13,7 +13,8 @@
  *
  * Wiring:
  * - LED -> pin 3, Servo signal -> A0
- * - Motor driver: see Drive.h
+ * - Motor driver: see Drive.h (flip LEFT_MOTOR_REVERSED / RIGHT_MOTOR_REVERSED
+ *   there if a motor spins the wrong way)
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.

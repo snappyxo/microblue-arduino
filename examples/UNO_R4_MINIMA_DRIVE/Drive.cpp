@@ -85,14 +85,21 @@ void motorBrake() {
   // Do not write the motor speeds on this function. It simply configures the motor controller.
 }
 
+// Sets the direction pins of one motor. `forward` is the direction the robot
+// should move; `reversed` flips the signals to match how that motor is wired
+// (see LEFT_MOTOR_REVERSED / RIGHT_MOTOR_REVERSED in Drive.h).
+static void setMotorDirection(int inA, int inB, bool forward, bool reversed) {
+  bool spinForward = (forward != reversed);
+  digitalWrite(inA, spinForward ? LOW : HIGH);
+  digitalWrite(inB, spinForward ? HIGH : LOW);
+}
+
 // Configures the motor controller to have the robot move forward.
 void motorSetForward() {
   digitalWrite(ENA, HIGH);
   digitalWrite(ENB, HIGH);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  setMotorDirection(IN1, IN2, true, LEFT_MOTOR_REVERSED);
+  setMotorDirection(IN3, IN4, true, RIGHT_MOTOR_REVERSED);
   // Do not write the motor speeds on this function. It simply configures the motor controller.
 }
 
@@ -100,9 +107,7 @@ void motorSetForward() {
 void motorSetBackward() {
   digitalWrite(ENA, HIGH);
   digitalWrite(ENB, HIGH);
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  setMotorDirection(IN1, IN2, false, LEFT_MOTOR_REVERSED);
+  setMotorDirection(IN3, IN4, false, RIGHT_MOTOR_REVERSED);
   // Do not write the motor speeds on this function. It simply configures the motor controller.
 }

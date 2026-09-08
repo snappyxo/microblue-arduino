@@ -10,6 +10,8 @@
  * Wiring (L298N-style motor driver, see Drive.h):
  * - ENA -> pin 5, IN1 -> pin 4, IN2 -> pin 7 (left motor)
  * - ENB -> pin 6, IN3 -> pin 8, IN4 -> pin 9 (right motor)
+ * - If a motor spins the wrong way, set LEFT_MOTOR_REVERSED or
+ *   RIGHT_MOTOR_REVERSED to true in Drive.h instead of rewiring.
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.

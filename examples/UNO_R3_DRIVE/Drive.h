@@ -23,6 +23,13 @@ const int ENB = 11;
 const int IN3 = 13;
 const int IN4 = 12;
 
+// MOTOR DIRECTION
+// If a motor spins the wrong way when the robot should move forward, change
+// its flag below to true. This swaps the IN1/IN2 (or IN3/IN4) signals in
+// software so the motor wires do not have to be physically swapped.
+const bool LEFT_MOTOR_REVERSED = false;
+const bool RIGHT_MOTOR_REVERSED = false;
+
 // MOTOR PARAMETERS
 // Minimum PWM value for analogWrite to spin motor when robot is on the ground.
 const int MINIMUM_MOTOR_SPEED = 40;

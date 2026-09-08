@@ -7,6 +7,7 @@
 - `read()` in HM-10 mode is now fully non-blocking: frames are assembled byte by byte across calls, so split BLE packets, dropped bytes, and HM-10 status strings (`OK+CONN`/`OK+LOST`) no longer stall the loop or corrupt the next message
 - New examples: `UNO_R4_WIFI_LED`, `UNO_R4_WIFI_SERVO`, `UNO_R4_WIFI_WRITE_BUTTON`, `UNO_R4_WIFI_DRIVE`, `UNO_R4_WIFI_DRIVE_SERVO_LED`
 - Drive examples now check that the joystick message parsed correctly and brake on malformed input
+- Drive examples: new `LEFT_MOTOR_REVERSED` / `RIGHT_MOTOR_REVERSED` flags in `Drive.h` flip a motor's direction in software when its wires are swapped
 - `HM10_BLE_WRITE_ULTRASONIC_SENSOR`: `pulseIn()` now has a 30 ms timeout so an empty field no longer stalls the loop for a second; out-of-range readings are reported instead of sent as 0
 - Built-in BLE mode: `read()` and `write()` now service the BLE stack themselves, so sketches that skip `isConnected()` still receive messages
 - All HM-10 examples updated to the same `begin()`/`isConnected()` structure as the built-in BLE examples, so sketches look identical across boards
