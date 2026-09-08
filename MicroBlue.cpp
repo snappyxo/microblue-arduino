@@ -71,7 +71,7 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLENotify, 100)
+    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100)
 #endif
 {
 }
@@ -81,7 +81,7 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 MicroBlueManager::MicroBlueManager()
   : _s(nullptr), _frameLength(0), _inFrame(false),
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLENotify, 100) {}
+    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100) {}
 #endif
 
 // Starts BLE advertising under the given name. In HM-10 mode the module
