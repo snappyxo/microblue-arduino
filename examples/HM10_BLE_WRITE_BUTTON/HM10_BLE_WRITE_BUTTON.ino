@@ -1,16 +1,16 @@
 /*
  * HM10_BLE_WRITE_BUTTON.ino
- * 
+ *
  * Description:
  * Demonstrates sending BLE messages to MicroBlue from a physical button.
- * When the button is pressed, the sketch sends value `1`; when released,
- * it sends value `0`.
- * 
+ * When the button is pressed, the sketch sends value `Pressed`; when released,
+ * it sends value `Released`.
+ *
  * Wiring:
  * - HM-10 TXD -> Arduino pin 7 (RX)
  * - HM-10 RXD -> Arduino pin 8 (TX)
  * - Button between pin 2 and GND (uses INPUT_PULLUP)
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */

@@ -26,7 +26,6 @@ jobs:
             platform: arduino:avr
             libraries: |
               - source-path: ./
-              - name: PWMServo
             sketch-paths: |
               - examples/HM10_BLE_READ_LED
               - examples/HM10_BLE_WRITE_BUTTON
@@ -40,7 +39,6 @@ jobs:
             platform: arduino:renesas_uno
             libraries: |
               - source-path: ./
-              - name: Servo
             sketch-paths: |
               - examples/UNO_R4_MINIMA_LED
               - examples/UNO_R4_MINIMA_RGB_LED

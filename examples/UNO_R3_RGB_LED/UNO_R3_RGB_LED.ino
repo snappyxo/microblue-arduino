@@ -1,11 +1,11 @@
 /*
  * UNO_R3_RGB_LED.ino
- * 
+ *
  * Description:
  * Arduino sketch that controls an RGB LED based on Bluetooth Low Energy (BLE) messages.
  * The `MicroBlueManager` is used to receive and process BLE commands to adjust the brightness
  * of the red, green, and blue components of the LED. Each color is controlled using PWM.
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */

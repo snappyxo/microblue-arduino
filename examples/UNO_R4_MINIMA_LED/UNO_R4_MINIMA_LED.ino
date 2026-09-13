@@ -1,11 +1,11 @@
 /*
  * UNO_R4_MINIMA_LED.ino
- * 
+ *
  * Description:
- * Arduino sketch that utilizes the `MicroBlueManager` class to receive and interpret BLE messages 
- * for device control, such as turning an LED on or off based on message data. Initializes BLE and 
+ * Arduino sketch that utilizes the `MicroBlueManager` class to receive and interpret BLE messages
+ * for device control, such as turning an LED on or off based on message data. Initializes BLE and
  * serial communication for message handling.
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */

@@ -1,14 +1,14 @@
 /*
  * HM10_BLE_WRITE_REPEAT.ino
- * 
+ *
  * Description:
  * Demonstrates continuously sending BLE values using `MicroBlueManager::write`.
  * The sketch alternates between sending `1` and `0` with a fixed delay.
- * 
+ *
  * Wiring:
  * - HM-10 TXD -> Arduino pin 7 (RX)
  * - HM-10 RXD -> Arduino pin 8 (TX)
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */

@@ -1,11 +1,11 @@
 /*
  * HM10_BLE_READ_LED.ino
- * 
+ *
  * Description:
  * Demonstrates reading BLE commands from an HM-10 module using `MicroBlueManager`
  * and toggling the onboard LED. The sketch parses incoming MicroBlue
  * messages (`b0` with value `1` or `0`) and applies the LED state accordingly.
- * 
+ *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
  */

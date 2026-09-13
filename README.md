@@ -13,7 +13,7 @@ Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBl
 ## Hardware Requirements
 
 - Arduino UNO R3 or Arduino UNO R4 Minima with an HM-10 BLE module, **or**
-- Arduino UNO R4 WiFi (uses its built-in BLE radio; requires the [ArduinoBLE](https://www.arduino.cc/reference/en/libraries/arduinoble/) library)
+- Arduino UNO R4 WiFi (uses its built-in BLE radio; requires the [ArduinoBLE](https://docs.arduino.cc/libraries/arduinoble/) library)
 - MicroBlue mobile app
 
 ## Installation
@@ -34,6 +34,7 @@ Arduino library for Bluetooth Low Energy (BLE) communication between the MicroBl
    - macOS: `~/Documents/Arduino/libraries/`
    - Linux: `~/Arduino/libraries/`
 4. Restart Arduino IDE
+5. If you are using the UNO R4 WiFi, also install the [ArduinoBLE](https://docs.arduino.cc/libraries/arduinoble/) library (the Library Manager does this automatically; a manual install does not)
 
 ## Wiring
 
@@ -165,6 +166,7 @@ Represents a BLE message with an ID and value.
 - `bool hasId()` - Returns true if ID is non-empty
 - `bool hasValue()` - Returns true if value is non-empty
 - `String toString()` - Returns formatted string "id:[ID] value:[VALUE]"
+- `static MicroBlueMessage parse(const uint8_t *buffer, size_t size)` - Parses a raw `[1][ID][2][VALUE][3]` frame into a message; the value is lowercased and stripped of spaces
 
 ### MicroBlueManager
 
@@ -188,8 +190,6 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE.
 
 - **UNO_R3_LED** - Simple LED on/off control
 - **UNO_R3_RGB_LED** - RGB LED color control from three sliders
-- **UNO_R3_DRIVE** - Dual motor control with throttle and steering
-- **UNO_R3_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
 - **HM10_BLE_READ_LED** - Minimal read example: toggle the onboard LED from the app
 - **HM10_BLE_WRITE_BUTTON** - Send button presses and releases to the app
 - **HM10_BLE_WRITE_REPEAT** - Send an alternating 1/0 value every second
@@ -199,15 +199,11 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE.
 
 - **UNO_R4_MINIMA_LED** - Simple LED on/off control
 - **UNO_R4_MINIMA_RGB_LED** - RGB LED color control from three sliders
-- **UNO_R4_MINIMA_DRIVE** - Dual motor control with throttle and steering
-- **UNO_R4_MINIMA_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
 
 ### UNO R4 WiFi with built-in BLE (no HM-10)
 
 - **UNO_R4_WIFI_LED** - Simple LED on/off control
 - **UNO_R4_WIFI_SERVO** - Servo control from a slider
-- **UNO_R4_WIFI_DRIVE** - Dual motor control with throttle and steering
-- **UNO_R4_WIFI_DRIVE_SERVO_LED** - Combined motor, servo, and LED control
 - **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
 
 ### Utilities
@@ -222,4 +218,4 @@ MIT License — Copyright (c) 2026 A+ Mobile Solutions Inc. See [LICENSE](LICENS
 
 ## Links
 
-- [MicroBlue App](http://www.snappyxo.io/microblue)
+- [MicroBlue App](https://www.snappyxo.io/microblue)
