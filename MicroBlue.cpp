@@ -293,3 +293,28 @@ void MicroBlueManager::write(const String &id, const String &value) {
   _toApp.writeValue((const uint8_t *)frame.c_str(), frame.length());
 #endif
 }
+
+// Writes numbers as their text, the format the app's displays read
+void MicroBlueManager::write(const String &id, char value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, int value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, unsigned int value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, long value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, unsigned long value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, double value, unsigned int decimals) {
+  write(id, String(value, (unsigned char)decimals));
+}

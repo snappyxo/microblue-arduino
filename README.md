@@ -139,7 +139,13 @@ The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode t
 ```cpp
 // Send [1][status][2][ok][3]
 manager.write("status", "ok");
+
+// Numbers are sent as text, which the app's displays read
+manager.write("a0", analogRead(A0));  // e.g. "512"
+manager.write("temp", 21.456, 1);     // "21.5" (1 digit after the point)
 ```
+
+Keep an ID and value together under about 95 characters, and send no faster than you need: an HM-10 at 9600 baud manages roughly 10–20 messages a second.
 
 ### Stop Safely When the App Is Gone
 
@@ -207,6 +213,9 @@ Manages BLE communication and message parsing. One class, two transports.
 - `bool isConnected()` - Returns true while the MicroBlue app is connected. In HM-10 mode the connection state isn't visible, so this always returns true.
 - `MicroBlueMessage read()` - Read and parse the next message from the app, oldest first; returns an empty message if nothing new arrived. Heartbeats and messages without an ID are skipped. In built-in BLE mode up to 8 messages wait between calls (beyond that the oldest is dropped); in HM-10 mode they wait in the serial buffer.
 - `void write(const String &id, const String &value)` - Send a message to the app in the format `[1][ID][2][VALUE][3]`
+- `void write(const String &id, int/unsigned int/long/unsigned long value)` - Send a whole number as the value, e.g. `write("a0", analogRead(A0))`
+- `void write(const String &id, double value, unsigned int decimals = 2)` - Send a decimal number with `decimals` digits after the point, e.g. `write("temp", 21.456, 1)` sends `21.5`
+- `void write(const String &id, char value)` - Send a single character, e.g. `write("key", 'A')` sends `A`
 - `bool heartbeatLost()` - Returns true once the app's heartbeat has stopped: heartbeats were arriving, but nothing has arrived for the heartbeat timeout. Stays true until the app sends again; never true with an app that sends no heartbeats
 - `void setHeartbeatTimeout(unsigned long ms)` - How long nothing may arrive before `heartbeatLost()` returns true (default 1000 ms)
 

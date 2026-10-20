@@ -2,6 +2,7 @@
 
 ## 2.1.0 (unreleased)
 
+- `write()` takes numbers too: `write("a0", analogRead(A0))` sends `512`, `write("temp", 21.456, 1)` sends `21.5`, and a `char` is sent as the character. No more `String(...)` around values.
 - New `heartbeatLost()` and `setHeartbeatTimeout(ms)`: stop motors when the MicroBlue app's heartbeat stops (phone out of range, app closed or in the background). True once nothing has arrived for 1 s after heartbeats were arriving; never true with apps that send no heartbeats (MicroBlue 1.x, or **Send heartbeat** off), so sketches using it keep working with those.
 - `read()` skips heartbeats `[1][2][3]` and other messages without an ID instead of returning them as empty messages. Sketches that check `hasId()` or compare `msg.id` (all shipped examples) behave as before.
 - Built-in BLE mode: the app no longer gets back every message it sends. The board now sends on its own characteristic, `19B10002-E8F2-537E-4F6C-D104768A1214`; the app writes to `19B10001-…` as before, which no longer notifies. Sketches need no change. MicroBlue 1.x (which only sends) and the MicroBlue app 2.0 find both automatically.

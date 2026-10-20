@@ -100,6 +100,17 @@ public:
   MicroBlueMessage read();
   void write(const String &id, const String &value);  // Writes a message to the app
 
+  // Write a number as the value, e.g. write("a0", analogRead(A0)) sends "512".
+  // A char is sent as the character, like Serial.print does: 'a' sends "a".
+  void write(const String &id, char value);
+  void write(const String &id, int value);
+  void write(const String &id, unsigned int value);
+  void write(const String &id, long value);
+  void write(const String &id, unsigned long value);
+  // Write a decimal number with the given digits after the point,
+  // e.g. write("temp", 21.456, 1) sends "21.5"
+  void write(const String &id, double value, unsigned int decimals = 2);
+
   // True once the app's heartbeat has stopped (the phone went out of range,
   // the app was closed or put in the background): heartbeats were arriving,
   // but nothing has arrived for the heartbeat timeout. Stays true until the
