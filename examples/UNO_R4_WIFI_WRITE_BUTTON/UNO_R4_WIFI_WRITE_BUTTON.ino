@@ -46,32 +46,30 @@ void setup() {
 
 void loop() {
   // Only send messages while the MicroBlue app is connected
-  if (!manager.isConnected()) {
-    return;
-  }
+  if (manager.isConnected()) {
+    // Read current button state from the input pin
+    int reading = digitalRead(BUTTON_PIN);
 
-  // Read current button state from the input pin
-  int reading = digitalRead(BUTTON_PIN);
+    // If raw input changed, restart debounce timer.
+    if (reading != lastButtonReading) {
+      lastDebounceTime = millis();
+    }
 
-  // If raw input changed, restart debounce timer.
-  if (reading != lastButtonReading) {
-    lastDebounceTime = millis();
-  }
-
-  // Accept the new state only if it stays unchanged for the debounce window.
-  if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS) {
-    if (reading != buttonState) {
-      buttonState = reading;  // Update stable button state after debounce
-      if (buttonState == LOW) {
-        manager.write(BUTTON_ID, "Pressed");  // Send pressed value
-        Serial.println("Button pressed");     // Debug output
-      } else {
-        manager.write(BUTTON_ID, "Released");  // Send released value
-        Serial.println("Button released");     // Debug output
+    // Accept the new state only if it stays unchanged for the debounce window.
+    if ((millis() - lastDebounceTime) > DEBOUNCE_DELAY_MS) {
+      if (reading != buttonState) {
+        buttonState = reading;  // Update stable button state after debounce
+        if (buttonState == LOW) {
+          manager.write(BUTTON_ID, "Pressed");  // Send pressed value
+          Serial.println("Button pressed");     // Debug output
+        } else {
+          manager.write(BUTTON_ID, "Released");  // Send released value
+          Serial.println("Button released");     // Debug output
+        }
       }
     }
-  }
 
-  // Save raw reading for the next debounce comparison
-  lastButtonReading = reading;
+    // Save raw reading for the next debounce comparison
+    lastButtonReading = reading;
+  }
 }

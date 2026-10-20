@@ -54,37 +54,35 @@ void setup() {
 }
 
 void loop() {
-  // Wait for the MicroBlue app to connect
-  if (!manager.isConnected()) {
-    return;
+  // Only send messages while the MicroBlue app is connected
+  if (manager.isConnected()) {
+    // Send a 10-microsecond pulse to trigger the sensor
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+
+    // Measure the duration of the echo pulse (in microseconds).
+    // Returns 0 if no echo arrives within the timeout (nothing in range).
+    long duration = pulseIn(ECHO_PIN, HIGH, ECHO_TIMEOUT_US);
+
+    if (duration == 0) {
+      Serial.println("Distance: out of range");
+    } else {
+      // Convert to distance in centimeters:
+      // Speed of sound ~ 343 m/s = 34300 cm/s = 0.0343 cm/us
+      // The echo pulse travels to the object and back (2x the distance),
+      // so: distance = duration * 0.0343 / 2 = duration / 58.3
+      long distanceCm = duration / 58;
+
+      // Send the distance value over BLE
+      manager.write(SENSOR_ID, String(distanceCm));
+      Serial.print("Distance: ");
+      Serial.print(distanceCm);
+      Serial.println(" cm");
+    }
+
+    delay(MEASURE_DELAY_MS);
   }
-
-  // Send a 10-microsecond pulse to trigger the sensor
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Measure the duration of the echo pulse (in microseconds).
-  // Returns 0 if no echo arrives within the timeout (nothing in range).
-  long duration = pulseIn(ECHO_PIN, HIGH, ECHO_TIMEOUT_US);
-
-  if (duration == 0) {
-    Serial.println("Distance: out of range");
-  } else {
-    // Convert to distance in centimeters:
-    // Speed of sound ~ 343 m/s = 34300 cm/s = 0.0343 cm/us
-    // The echo pulse travels to the object and back (2x the distance),
-    // so: distance = duration * 0.0343 / 2 = duration / 58.3
-    long distanceCm = duration / 58;
-
-    // Send the distance value over BLE
-    manager.write(SENSOR_ID, String(distanceCm));
-    Serial.print("Distance: ");
-    Serial.print(distanceCm);
-    Serial.println(" cm");
-  }
-
-  delay(MEASURE_DELAY_MS);
 }

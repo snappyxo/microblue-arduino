@@ -42,25 +42,20 @@ void setup() {
 }
 
 void loop() {
-  // Only send messages while the MicroBlue app is connected
-  if (!manager.isConnected()) {
-    return;
+  // Only send messages while the MicroBlue app is connected, on a timer
+  // instead of delay(), so the loop stays free for other work
+  if (manager.isConnected() && millis() - lastSend >= SEND_INTERVAL_MS) {
+    lastSend = millis();
+
+    int reading = analogRead(SENSOR_PIN);  // 0-1023
+    float volts = reading * 5.0 / 1023.0;  // 0.00-5.00 V
+
+    manager.write(RAW_ID, reading);     // e.g. "512"
+    manager.write(VOLTS_ID, volts, 2);  // e.g. "2.50"
+
+    Serial.print("Reading: ");
+    Serial.print(reading);
+    Serial.print("  Volts: ");
+    Serial.println(volts, 2);
   }
-
-  // Send on a timer instead of delay(), so the loop stays free for other work
-  if (millis() - lastSend < SEND_INTERVAL_MS) {
-    return;
-  }
-  lastSend = millis();
-
-  int reading = analogRead(SENSOR_PIN);  // 0-1023
-  float volts = reading * 5.0 / 1023.0;  // 0.00-5.00 V
-
-  manager.write(RAW_ID, reading);     // e.g. "512"
-  manager.write(VOLTS_ID, volts, 2);  // e.g. "2.50"
-
-  Serial.print("Reading: ");
-  Serial.print(reading);
-  Serial.print("  Volts: ");
-  Serial.println(volts, 2);
 }

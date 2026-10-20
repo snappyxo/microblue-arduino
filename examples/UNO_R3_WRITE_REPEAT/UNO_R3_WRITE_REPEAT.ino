@@ -36,16 +36,14 @@ void setup() {
 }
 
 void loop() {
-  // Wait for the MicroBlue app to connect
-  if (!manager.isConnected()) {
-    return;
+  // Only send messages while the MicroBlue app is connected
+  if (manager.isConnected()) {
+    manager.write(REPEAT_ID, "1");  // Send value 1
+    Serial.println("Sent: b0=1");   // Debug output
+    delay(REPEAT_DELAY_MS);
+
+    manager.write(REPEAT_ID, "0");  // Send value 0
+    Serial.println("Sent: b0=0");   // Debug output
+    delay(REPEAT_DELAY_MS);
   }
-
-  manager.write(REPEAT_ID, "1");  // Send value 1
-  Serial.println("Sent: b0=1");   // Debug output
-  delay(REPEAT_DELAY_MS);
-
-  manager.write(REPEAT_ID, "0");  // Send value 0
-  Serial.println("Sent: b0=0");   // Debug output
-  delay(REPEAT_DELAY_MS);
 }
