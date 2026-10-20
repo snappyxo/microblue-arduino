@@ -200,13 +200,13 @@ Represents a BLE message with an ID and value.
 
 #### Properties
 - `String id` - Message identifier
-- `String value` - Message value
+- `String value` - Message value, exactly as the app sent it. Text from the app's Text control keeps its capitals and spaces; to match typed text whatever its case, compare with `msg.value.equalsIgnoreCase("on")`
 
 #### Methods
 - `bool hasId()` - Returns true if ID is non-empty
 - `bool hasValue()` - Returns true if value is non-empty
 - `String toString()` - Returns formatted string "id:[ID] value:[VALUE]"
-- `static MicroBlueMessage parse(const uint8_t *buffer, size_t size)` - Parses a raw `[1][ID][2][VALUE][3]` frame into a message; the value is lowercased and stripped of spaces
+- `static MicroBlueMessage parse(const uint8_t *buffer, size_t size)` - Parses a raw `[1][ID][2][VALUE][3]` frame into a message (`read()` does this for you)
 
 ### MicroBlueManager
 

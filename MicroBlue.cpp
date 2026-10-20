@@ -52,10 +52,6 @@ MicroBlueMessage MicroBlueMessage::parse(const uint8_t *buffer, size_t size) {
     }
   }
 
-  // Clean up the value string by standardizing it
-  msg.value.toLowerCase();     // Convert all characters to lowercase
-  msg.value.replace(" ", "");  // Remove any spaces
-
   return msg;
 }
 

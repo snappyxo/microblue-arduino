@@ -2,6 +2,8 @@
 
 ## 2.1.0 (unreleased)
 
+**Upgrading from 2.0.0.** `msg.value` is now exactly what the app sent. Earlier versions lowercased it and removed its spaces, so the Text control's `Hello World` arrived as `helloworld`. Only text from the Text control is affected; every other control sends numbers. A sketch that compares typed text, such as `msg.value == "on"`, no longer matches `On` (the phone's keyboard may capitalize the first letter) or `ON`: compare with `msg.value.equalsIgnoreCase("on")` instead.
+
 - Examples renamed to `BOARD_READ_*` (acts on messages from the app) or `BOARD_WRITE_*` (sends to the app), one set per UNO board. `HM10_BLE_READ_LED` was removed; it was the same as `UNO_R3_READ_LED`. Old → new:
   - `UNO_R3_LED` → `UNO_R3_READ_LED`, `UNO_R3_RGB_LED` → `UNO_R3_READ_RGB_LED`
   - `HM10_BLE_WRITE_BUTTON` → `UNO_R3_WRITE_BUTTON`, `HM10_BLE_WRITE_REPEAT` → `UNO_R3_WRITE_REPEAT`, `HM10_BLE_WRITE_ULTRASONIC_SENSOR` → `UNO_R3_WRITE_ULTRASONIC_SENSOR`

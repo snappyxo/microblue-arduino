@@ -29,7 +29,7 @@
 class MicroBlueMessage {
 public:
   String id;     // Message ID, typically a command identifier
-  String value;  // Message value, e.g., "1" or "0" for LED control
+  String value;  // Message value exactly as sent, e.g., "1" or "0" for LED control
 
   MicroBlueMessage();       // Constructor
   bool hasId() const;       // Checks if the ID is valid (non-empty)
