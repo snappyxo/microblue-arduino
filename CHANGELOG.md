@@ -4,6 +4,7 @@
 
 - New `heartbeatLost()` and `setHeartbeatTimeout(ms)`: stop motors when the MicroBlue app's heartbeat stops (phone out of range, app closed or in the background). True once nothing has arrived for 1 s after heartbeats were arriving; never true with apps that send no heartbeats (MicroBlue 1.x, or **Send heartbeat** off), so sketches using it keep working with those.
 - `read()` skips heartbeats `[1][2][3]` and other messages without an ID instead of returning them as empty messages. Sketches that check `hasId()` or compare `msg.id` (all shipped examples) behave as before.
+- Built-in BLE mode: the app no longer gets back every message it sends. The board now sends on its own characteristic, `19B10002-E8F2-537E-4F6C-D104768A1214`; the app writes to `19B10001-…` as before, which no longer notifies. Sketches need no change. MicroBlue 1.x (which only sends) and the MicroBlue app 2.0 find both automatically.
 - Built-in BLE mode: messages the app sends close together are no longer lost. `read()` used to return only the last one written since the previous call, so when the app sent two messages at once (for example the stop values `512,512` for both drive halves) the first could be dropped. Up to 8 messages now wait for `read()`, oldest first.
 
 ## 2.0.0 (2026-09-13)

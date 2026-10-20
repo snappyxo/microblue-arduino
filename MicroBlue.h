@@ -63,8 +63,9 @@ private:
   void noteFrame(bool heartbeat);
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-  BLEService _service;                // BLE service advertised to the MicroBlue app
-  BLECharacteristic _characteristic;  // Characteristic carrying MicroBlue messages
+  BLEService _service;         // BLE service advertised to the MicroBlue app
+  BLECharacteristic _fromApp;  // The app writes its messages here
+  BLECharacteristic _toApp;    // write() notifies the app here
 
   // Built-in BLE mode: messages the app wrote, oldest first, until read()
   // returns them. ArduinoBLE can take in several writes in one poll and the

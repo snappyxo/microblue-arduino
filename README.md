@@ -130,6 +130,8 @@ void loop() {
 }
 ```
 
+The board advertises the MicroBlue service `19B10000-E8F2-537E-4F6C-D104768A1214`. The app writes its messages to the characteristic `19B10001-E8F2-537E-4F6C-D104768A1214`, and `write()` notifies the app on `19B10002-E8F2-537E-4F6C-D104768A1214`. Before 2.1.0 the library used `19B10001` both ways, which sent every message from the app straight back to it.
+
 The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode too (`begin()` and `isConnected()` are harmless no-ops there, since the HM-10 manages the connection itself), so sketches can share one structure across all boards.
 
 ### Send Data to MicroBlue

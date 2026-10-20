@@ -60,9 +60,14 @@ MicroBlueMessage MicroBlueMessage::parse(const uint8_t *buffer, size_t size) {
 }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-// UUIDs the MicroBlue app uses to discover the board and exchange messages
+// UUIDs the MicroBlue app uses to discover the board and exchange messages.
+// Messages from the app and to the app use separate characteristics: when one
+// characteristic notifies, ArduinoBLE notifies every write the app makes back
+// to the app (2.0.0 and earlier echoed each message this way). Older apps
+// find the board's characteristic as the only one they can write to.
 static const char *MICROBLUE_SERVICE_UUID = "19B10000-E8F2-537E-4F6C-D104768A1214";
-static const char *MICROBLUE_CHARACTERISTIC_UUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
+static const char *MICROBLUE_FROM_APP_UUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
+static const char *MICROBLUE_TO_APP_UUID = "19B10002-E8F2-537E-4F6C-D104768A1214";
 #endif
 
 // True for the app's heartbeat: a frame with an empty id and value,
@@ -78,7 +83,8 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100),
+    _fromApp(MICROBLUE_FROM_APP_UUID, BLEWrite | BLEWriteWithoutResponse, 100),
+    _toApp(MICROBLUE_TO_APP_UUID, BLERead | BLENotify, 100),
     _queueStart(0), _queueCount(0)
 #endif
 {
@@ -90,7 +96,8 @@ MicroBlueManager::MicroBlueManager()
   : _s(nullptr), _frameLength(0), _inFrame(false),
     _heartbeatTimeout(DEFAULT_HEARTBEAT_TIMEOUT), _lastFrameAt(0), _heartbeatSeen(false),
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100),
+    _fromApp(MICROBLUE_FROM_APP_UUID, BLEWrite | BLEWriteWithoutResponse, 100),
+    _toApp(MICROBLUE_TO_APP_UUID, BLERead | BLENotify, 100),
     _queueStart(0), _queueCount(0) {}
 
 MicroBlueManager *MicroBlueManager::_builtinManager = nullptr;
@@ -143,8 +150,9 @@ bool MicroBlueManager::begin(const char *deviceName) {
   BLE.setDeviceName(deviceName);
   BLE.setAdvertisedService(_service);
   _builtinManager = this;
-  _characteristic.setEventHandler(BLEWritten, onWritten);
-  _service.addCharacteristic(_characteristic);
+  _fromApp.setEventHandler(BLEWritten, onWritten);
+  _service.addCharacteristic(_fromApp);
+  _service.addCharacteristic(_toApp);
   BLE.addService(_service);
   BLE.advertise();
 #endif
@@ -282,6 +290,6 @@ void MicroBlueManager::write(const String &id, const String &value) {
   frame += (char)2;
   frame += value;
   frame += (char)3;
-  _characteristic.writeValue((const uint8_t *)frame.c_str(), frame.length());
+  _toApp.writeValue((const uint8_t *)frame.c_str(), frame.length());
 #endif
 }
