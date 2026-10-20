@@ -179,7 +179,7 @@ Manages BLE communication and message parsing. One class, two transports.
 #### Methods
 - `bool begin(const char *deviceName = "MicroBlue")` - Start BLE advertising under the given name; returns false if the radio fails to start. In HM-10 mode this is a no-op returning true (the module advertises on its own).
 - `bool isConnected()` - Returns true while the MicroBlue app is connected. In HM-10 mode the connection state isn't visible, so this always returns true.
-- `MicroBlueMessage read()` - Read and parse the latest message; returns an empty message if nothing new arrived
+- `MicroBlueMessage read()` - Read and parse the next message from the app, oldest first; returns an empty message if nothing new arrived. In built-in BLE mode up to 8 messages wait between calls (beyond that the oldest is dropped); in HM-10 mode they wait in the serial buffer.
 - `void write(const String &id, const String &value)` - Send a message to the app in the format `[1][ID][2][VALUE][3]`
 
 ## Examples

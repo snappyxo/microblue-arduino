@@ -58,6 +58,17 @@ private:
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
   BLEService _service;                // BLE service advertised to the MicroBlue app
   BLECharacteristic _characteristic;  // Characteristic carrying MicroBlue messages
+
+  // Built-in BLE mode: messages the app wrote, oldest first, until read()
+  // returns them. ArduinoBLE can take in several writes in one poll and the
+  // characteristic keeps only the last, so each write is queued as it arrives.
+  static const size_t QUEUE_LENGTH = 8;
+  MicroBlueMessage _queue[QUEUE_LENGTH];
+  size_t _queueStart;  // Index of the oldest queued message
+  size_t _queueCount;  // How many messages are queued
+
+  static MicroBlueManager *_builtinManager;  // The manager that receives the writes
+  static void onWritten(BLEDevice central, BLECharacteristic characteristic);
 #endif
 
 public:

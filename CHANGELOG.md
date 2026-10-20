@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+- Built-in BLE mode: messages the app sends close together are no longer lost. `read()` used to return only the last one written since the previous call, so when the app sent two messages at once (for example the stop values `512,512` for both drive halves) the first could be dropped. Up to 8 messages now wait for `read()`, oldest first.
+
 ## 2.0.0 (2026-09-13)
 
 **Upgrading from 1.2.0.** Existing sketches compile unchanged, but two things behave differently:

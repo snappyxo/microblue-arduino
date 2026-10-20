@@ -71,7 +71,8 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100)
+    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100),
+    _queueStart(0), _queueCount(0)
 #endif
 {
 }
@@ -81,7 +82,29 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 MicroBlueManager::MicroBlueManager()
   : _s(nullptr), _frameLength(0), _inFrame(false),
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100) {}
+    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100),
+    _queueStart(0), _queueCount(0) {}
+
+MicroBlueManager *MicroBlueManager::_builtinManager = nullptr;
+
+// Called by ArduinoBLE for each write from the app, while BLE.poll() runs.
+// Queues the message; when the queue is full the oldest is dropped, so the
+// newest values always get through.
+void MicroBlueManager::onWritten(BLEDevice central, BLECharacteristic characteristic) {
+  (void)central;  // Only the MicroBlue app writes to the characteristic
+  MicroBlueManager *m = _builtinManager;
+  if (!m) {
+    return;
+  }
+
+  if (m->_queueCount == QUEUE_LENGTH) {
+    m->_queueStart = (m->_queueStart + 1) % QUEUE_LENGTH;
+    m->_queueCount--;
+  }
+  size_t end = (m->_queueStart + m->_queueCount) % QUEUE_LENGTH;
+  m->_queue[end] = MicroBlueMessage::parse(characteristic.value(), (size_t)characteristic.valueLength());
+  m->_queueCount++;
+}
 #endif
 
 // Starts BLE advertising under the given name. In HM-10 mode the module
@@ -100,6 +123,8 @@ bool MicroBlueManager::begin(const char *deviceName) {
   BLE.setLocalName(deviceName);
   BLE.setDeviceName(deviceName);
   BLE.setAdvertisedService(_service);
+  _builtinManager = this;
+  _characteristic.setEventHandler(BLEWritten, onWritten);
   _service.addCharacteristic(_characteristic);
   BLE.addService(_service);
   BLE.advertise();
@@ -169,14 +194,14 @@ MicroBlueMessage MicroBlueManager::read() {
   }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-  uint8_t buffer[100];  // Buffer to hold incoming data
-
-  // Service the BLE stack so incoming writes and connection events are
-  // processed even if the sketch never calls isConnected().
+  // Service the BLE stack so incoming writes (queued by onWritten) and
+  // connection events are processed even if the sketch never calls isConnected().
   BLE.poll();
-  if (_characteristic.written()) {
-    int size = _characteristic.readValue(buffer, sizeof(buffer));
-    return MicroBlueMessage::parse(buffer, (size_t)size);
+  if (_queueCount > 0) {
+    MicroBlueMessage msg = _queue[_queueStart];
+    _queueStart = (_queueStart + 1) % QUEUE_LENGTH;
+    _queueCount--;
+    return msg;
   }
 #endif
 
