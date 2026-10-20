@@ -38,7 +38,9 @@ const int ECHO_PIN = 10;
 // sends, so if this sketch also takes commands from the app, send less often
 // (see "Sending and Receiving at Once on the UNO R3" in the README).
 const char* SENSOR_ID = "us0";
-const unsigned long MEASURE_DELAY_MS = 100;
+const unsigned long MEASURE_INTERVAL_MS = 100;
+
+unsigned long lastMeasure = 0;  // millis() when the last measurement started
 
 // Longest echo pulse we wait for, in microseconds. The HC-SR04 ranges to about
 // 400 cm, which is a ~23 ms round trip; 30 ms gives margin. Without a timeout,
@@ -54,8 +56,11 @@ void setup() {
 }
 
 void loop() {
-  // Only send messages while the MicroBlue app is connected
-  if (manager.isConnected()) {
+  // Only send messages while the MicroBlue app is connected, on a timer
+  // instead of delay(), so the loop stays free for other work
+  if (manager.isConnected() && millis() - lastMeasure >= MEASURE_INTERVAL_MS) {
+    lastMeasure = millis();
+
     // Send a 10-microsecond pulse to trigger the sensor
     digitalWrite(TRIG_PIN, LOW);
     delayMicroseconds(2);
@@ -82,7 +87,5 @@ void loop() {
       Serial.print(distanceCm);
       Serial.println(" cm");
     }
-
-    delay(MEASURE_DELAY_MS);
   }
 }
