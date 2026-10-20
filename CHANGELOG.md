@@ -2,6 +2,7 @@
 
 ## 2.1.0 (unreleased)
 
+- New examples: `UNO_R4_WIFI_HEARTBEAT`, `UNO_R3_HEARTBEAT`, `UNO_R4_MINIMA_HEARTBEAT` (a Switch runs a "motor", the onboard LED, which stops when the heartbeat is lost and stays stopped until switched on again), and `UNO_R4_WIFI_WRITE_SENSOR` (a potentiometer's reading and voltage, four times a second).
 - `write()` takes numbers too: `write("a0", analogRead(A0))` sends `512`, `write("temp", 21.456, 1)` sends `21.5`, and a `char` is sent as the character. No more `String(...)` around values.
 - New `heartbeatLost()` and `setHeartbeatTimeout(ms)`: stop motors when the MicroBlue app's heartbeat stops (phone out of range, app closed or in the background). True once nothing has arrived for 1 s after heartbeats were arriving; never true with apps that send no heartbeats (MicroBlue 1.x, or **Send heartbeat** off), so sketches using it keep working with those.
 - `read()` skips heartbeats `[1][2][3]` and other messages without an ID instead of returning them as empty messages. Sketches that check `hasId()` or compare `msg.id` (all shipped examples) behave as before.

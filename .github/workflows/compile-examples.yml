@@ -32,6 +32,7 @@ jobs:
               - examples/HM10_BLE_WRITE_REPEAT
               - examples/HM10_BLE_WRITE_ULTRASONIC_SENSOR
               - examples/Rename_HM10_Bluetooth
+              - examples/UNO_R3_HEARTBEAT
               - examples/UNO_R3_LED
               - examples/UNO_R3_RGB_LED
           - name: UNO R4 Minima
@@ -40,6 +41,7 @@ jobs:
             libraries: |
               - source-path: ./
             sketch-paths: |
+              - examples/UNO_R4_MINIMA_HEARTBEAT
               - examples/UNO_R4_MINIMA_LED
               - examples/UNO_R4_MINIMA_RGB_LED
           - name: UNO R4 WiFi
@@ -50,9 +52,11 @@ jobs:
               - name: ArduinoBLE
               - name: Servo
             sketch-paths: |
+              - examples/UNO_R4_WIFI_HEARTBEAT
               - examples/UNO_R4_WIFI_LED
               - examples/UNO_R4_WIFI_SERVO
               - examples/UNO_R4_WIFI_WRITE_BUTTON
+              - examples/UNO_R4_WIFI_WRITE_SENSOR
 
     name: Compile for ${{ matrix.name }}
     steps:

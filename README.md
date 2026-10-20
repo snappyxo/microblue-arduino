@@ -226,6 +226,7 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE.
 ### UNO R3 with HM-10 (SoftwareSerial on pins 7/8)
 
 - **UNO_R3_LED** - Simple LED on/off control
+- **UNO_R3_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 - **UNO_R3_RGB_LED** - RGB LED color control from three sliders
 - **HM10_BLE_READ_LED** - Minimal read example: toggle the onboard LED from the app
 - **HM10_BLE_WRITE_BUTTON** - Send button presses and releases to the app
@@ -235,6 +236,7 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE.
 ### UNO R4 Minima with HM-10 (Serial1 on pins 0/1)
 
 - **UNO_R4_MINIMA_LED** - Simple LED on/off control
+- **UNO_R4_MINIMA_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 - **UNO_R4_MINIMA_RGB_LED** - RGB LED color control from three sliders
 
 ### UNO R4 WiFi with built-in BLE (no HM-10)
@@ -242,6 +244,8 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE.
 - **UNO_R4_WIFI_LED** - Simple LED on/off control
 - **UNO_R4_WIFI_SERVO** - Servo control from a slider
 - **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
+- **UNO_R4_WIFI_WRITE_SENSOR** - Send a potentiometer's reading and voltage four times a second
+- **UNO_R4_WIFI_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 
 ### Utilities
 
