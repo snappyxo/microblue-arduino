@@ -139,6 +139,28 @@ The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode t
 manager.write("status", "ok");
 ```
 
+### Stop Safely When the App Is Gone
+
+The MicroBlue app (2.0 and later) sends a heartbeat, an empty message, whenever it has sent nothing else for 200 ms. When the phone goes out of range, the app is closed or put in the background, the heartbeat stops, but a robot would keep running its last command. `heartbeatLost()` tells you when to stop:
+
+```cpp
+void loop() {
+  if (manager.isConnected()) {
+    MicroBlueMessage msg = manager.read();
+    // ... act on msg ...
+  }
+
+  // Outside the isConnected() check, so it also stops after a disconnect
+  if (manager.heartbeatLost()) {
+    stopMotors();
+  }
+}
+```
+
+- It turns true once nothing has arrived for 1 s and stays true until the app sends again. Change the time with `manager.setHeartbeatTimeout(ms)`; keep it at 1000 ms or more, since single heartbeats can arrive a few hundred milliseconds late near the edge of range.
+- It never turns true with an app that sends no heartbeats — MicroBlue 1.x, or the app with **Send heartbeat** turned off — so the same sketch keeps working with those (without the safe stop).
+- Call `read()` in every `loop()`: that is where heartbeats are taken in. `read()` never returns them.
+
 ## Message Protocol
 
 Messages follow this format:
@@ -151,6 +173,8 @@ Messages follow this format:
 - Byte 2: Separator
 - VALUE: Command value (e.g., "1" for on, "0" for off)
 - Byte 3: End delimiter
+
+A message with an empty ID and value, `[1][2][3]`, is the app's heartbeat (see [Stop Safely When the App Is Gone](#stop-safely-when-the-app-is-gone)).
 
 ## API Reference
 
@@ -179,8 +203,10 @@ Manages BLE communication and message parsing. One class, two transports.
 #### Methods
 - `bool begin(const char *deviceName = "MicroBlue")` - Start BLE advertising under the given name; returns false if the radio fails to start. In HM-10 mode this is a no-op returning true (the module advertises on its own).
 - `bool isConnected()` - Returns true while the MicroBlue app is connected. In HM-10 mode the connection state isn't visible, so this always returns true.
-- `MicroBlueMessage read()` - Read and parse the next message from the app, oldest first; returns an empty message if nothing new arrived. In built-in BLE mode up to 8 messages wait between calls (beyond that the oldest is dropped); in HM-10 mode they wait in the serial buffer.
+- `MicroBlueMessage read()` - Read and parse the next message from the app, oldest first; returns an empty message if nothing new arrived. Heartbeats and messages without an ID are skipped. In built-in BLE mode up to 8 messages wait between calls (beyond that the oldest is dropped); in HM-10 mode they wait in the serial buffer.
 - `void write(const String &id, const String &value)` - Send a message to the app in the format `[1][ID][2][VALUE][3]`
+- `bool heartbeatLost()` - Returns true once the app's heartbeat has stopped: heartbeats were arriving, but nothing has arrived for the heartbeat timeout. Stays true until the app sends again; never true with an app that sends no heartbeats
+- `void setHeartbeatTimeout(unsigned long ms)` - How long nothing may arrive before `heartbeatLost()` returns true (default 1000 ms)
 
 ## Examples
 

@@ -65,9 +65,16 @@ static const char *MICROBLUE_SERVICE_UUID = "19B10000-E8F2-537E-4F6C-D104768A121
 static const char *MICROBLUE_CHARACTERISTIC_UUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
 #endif
 
+// True for the app's heartbeat: a frame with an empty id and value,
+// [1][2][3]. The end delimiter is absent when the frame was assembled in HM-10 mode.
+static bool isHeartbeat(const uint8_t *frame, size_t length) {
+  return length >= 2 && frame[0] == 1 && frame[1] == 2 && (length == 2 || (length == 3 && frame[2] == 3));
+}
+
 // HM-10 mode: communicates through the module's serial stream
 MicroBlueManager::MicroBlueManager(Stream &s)
-  : _s(&s), _frameLength(0), _inFrame(false)
+  : _s(&s), _frameLength(0), _inFrame(false),
+    _heartbeatTimeout(DEFAULT_HEARTBEAT_TIMEOUT), _lastFrameAt(0), _heartbeatSeen(false)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
@@ -81,6 +88,7 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 // Built-in BLE mode: communicates through the board's own radio
 MicroBlueManager::MicroBlueManager()
   : _s(nullptr), _frameLength(0), _inFrame(false),
+    _heartbeatTimeout(DEFAULT_HEARTBEAT_TIMEOUT), _lastFrameAt(0), _heartbeatSeen(false),
     _service(MICROBLUE_SERVICE_UUID),
     _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100),
     _queueStart(0), _queueCount(0) {}
@@ -88,8 +96,8 @@ MicroBlueManager::MicroBlueManager()
 MicroBlueManager *MicroBlueManager::_builtinManager = nullptr;
 
 // Called by ArduinoBLE for each write from the app, while BLE.poll() runs.
-// Queues the message; when the queue is full the oldest is dropped, so the
-// newest values always get through.
+// Notes the frame for heartbeatLost() and queues it if it is a message; when
+// the queue is full the oldest is dropped, so the newest values always get through.
 void MicroBlueManager::onWritten(BLEDevice central, BLECharacteristic characteristic) {
   (void)central;  // Only the MicroBlue app writes to the characteristic
   MicroBlueManager *m = _builtinManager;
@@ -97,12 +105,23 @@ void MicroBlueManager::onWritten(BLEDevice central, BLECharacteristic characteri
     return;
   }
 
+  const uint8_t *frame = characteristic.value();
+  size_t length = (size_t)characteristic.valueLength();
+  bool heartbeat = isHeartbeat(frame, length);
+  m->noteFrame(heartbeat);
+  if (heartbeat) {
+    return;
+  }
+
+  MicroBlueMessage msg = MicroBlueMessage::parse(frame, length);
+  if (!msg.hasId()) {
+    return;  // Not a message read() could return
+  }
   if (m->_queueCount == QUEUE_LENGTH) {
     m->_queueStart = (m->_queueStart + 1) % QUEUE_LENGTH;
     m->_queueCount--;
   }
-  size_t end = (m->_queueStart + m->_queueCount) % QUEUE_LENGTH;
-  m->_queue[end] = MicroBlueMessage::parse(characteristic.value(), (size_t)characteristic.valueLength());
+  m->_queue[(m->_queueStart + m->_queueCount) % QUEUE_LENGTH] = msg;
   m->_queueCount++;
 }
 #endif
@@ -172,12 +191,18 @@ MicroBlueMessage MicroBlueManager::read() {
       }
 
       if (b == 3) {
-        // End delimiter: frame complete. Leave any following bytes in the
-        // serial buffer for the next call.
+        // End delimiter: frame complete. Return a message right away, leaving
+        // any following bytes in the serial buffer for the next call; skip a
+        // heartbeat (or a frame without an id) and keep looking.
         _inFrame = false;
-        MicroBlueMessage msg = MicroBlueMessage::parse(_frame, _frameLength);
+        bool heartbeat = isHeartbeat(_frame, _frameLength);
+        noteFrame(heartbeat);
+        MicroBlueMessage msg = heartbeat ? MicroBlueMessage() : MicroBlueMessage::parse(_frame, _frameLength);
         _frameLength = 0;
-        return msg;
+        if (msg.hasId()) {
+          return msg;
+        }
+        continue;
       }
 
       if (_frameLength >= FRAME_BUFFER_SIZE) {
@@ -206,6 +231,36 @@ MicroBlueMessage MicroBlueManager::read() {
 #endif
 
   return MicroBlueMessage();
+}
+
+// Notes a complete frame from the app for heartbeatLost(). A frame after a
+// silence longer than the timeout starts over: the heartbeat can be lost
+// again only once a heartbeat has arrived since that silence. So an app that
+// sends none is never reported lost, even on a board that was used with one
+// that does (an HM-10 board can't tell that the phone changed).
+void MicroBlueManager::noteFrame(bool heartbeat) {
+  unsigned long now = millis();
+  if (now - _lastFrameAt > _heartbeatTimeout) {
+    _heartbeatSeen = false;
+  }
+  if (heartbeat) {
+    _heartbeatSeen = true;
+  }
+  _lastFrameAt = now;
+}
+
+// Reports whether the app's heartbeat has stopped; see MicroBlue.h
+bool MicroBlueManager::heartbeatLost() {
+#if defined(MICROBLUE_HAS_BUILTIN_BLE)
+  if (!_s) {
+    BLE.poll();  // Take in writes that arrived, so they count
+  }
+#endif
+  return _heartbeatSeen && millis() - _lastFrameAt > _heartbeatTimeout;
+}
+
+void MicroBlueManager::setHeartbeatTimeout(unsigned long ms) {
+  _heartbeatTimeout = ms;
 }
 
 // Writes a message to the app using the protocol [1][ID][2][VALUE][3]
