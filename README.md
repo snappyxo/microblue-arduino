@@ -236,6 +236,7 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each name sta
 - **UNO_R3_READ_LED** - Simple LED on/off control
 - **UNO_R3_READ_RGB_LED** - Set an RGB LED's color from the app's Color control (`c0`, sends `r,g,b`)
 - **UNO_R3_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
+- **UNO_R3_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
 - **UNO_R3_WRITE_BUTTON** - Send button presses and releases to the app
 - **UNO_R3_WRITE_REPEAT** - Send an alternating 1/0 value every second (no wiring needed)
 - **UNO_R3_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
@@ -245,12 +246,14 @@ Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each name sta
 - **UNO_R4_MINIMA_READ_LED** - Simple LED on/off control
 - **UNO_R4_MINIMA_READ_RGB_LED** - Set an RGB LED's color from the app's Color control (`c0`, sends `r,g,b`)
 - **UNO_R4_MINIMA_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
+- **UNO_R4_MINIMA_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
 
 ### UNO R4 WiFi with built-in BLE (no HM-10)
 
 - **UNO_R4_WIFI_READ_LED** - Simple LED on/off control
 - **UNO_R4_WIFI_READ_SERVO** - Servo control from a slider
 - **UNO_R4_WIFI_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
+- **UNO_R4_WIFI_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
 - **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
 - **UNO_R4_WIFI_WRITE_SENSOR** - Send a potentiometer's reading and voltage four times a second
 

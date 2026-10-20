@@ -28,6 +28,7 @@ jobs:
               - source-path: ./
             sketch-paths: |
               - examples/Rename_HM10_Bluetooth
+              - examples/UNO_R3_READ_DRIVE
               - examples/UNO_R3_READ_HEARTBEAT
               - examples/UNO_R3_READ_LED
               - examples/UNO_R3_READ_RGB_LED
@@ -40,6 +41,7 @@ jobs:
             libraries: |
               - source-path: ./
             sketch-paths: |
+              - examples/UNO_R4_MINIMA_READ_DRIVE
               - examples/UNO_R4_MINIMA_READ_HEARTBEAT
               - examples/UNO_R4_MINIMA_READ_LED
               - examples/UNO_R4_MINIMA_READ_RGB_LED
@@ -51,6 +53,7 @@ jobs:
               - name: ArduinoBLE
               - name: Servo
             sketch-paths: |
+              - examples/UNO_R4_WIFI_READ_DRIVE
               - examples/UNO_R4_WIFI_READ_HEARTBEAT
               - examples/UNO_R4_WIFI_READ_LED
               - examples/UNO_R4_WIFI_READ_SERVO
