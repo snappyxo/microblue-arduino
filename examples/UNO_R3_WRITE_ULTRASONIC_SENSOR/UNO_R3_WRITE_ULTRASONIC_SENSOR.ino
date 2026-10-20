@@ -1,8 +1,9 @@
 /*
- * HM10_BLE_WRITE_ULTRASONIC_SENSOR.ino
+ * UNO_R3_WRITE_ULTRASONIC_SENSOR.ino
  *
  * Description:
- * Demonstrates sending ultrasonic distance readings over BLE to MicroBlue.
+ * Demonstrates sending ultrasonic distance readings over BLE to MicroBlue on
+ * the Arduino UNO R3 with an HM-10 module.
  * The sketch triggers an HC-SR04 sensor, measures the echo pulse duration,
  * converts it to centimeters, and sends the value via `MicroBlueManager::write`.
  *

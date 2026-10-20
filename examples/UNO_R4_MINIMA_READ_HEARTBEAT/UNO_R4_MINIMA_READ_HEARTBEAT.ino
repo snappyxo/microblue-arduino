@@ -1,5 +1,5 @@
 /*
- * UNO_R4_MINIMA_HEARTBEAT.ino
+ * UNO_R4_MINIMA_READ_HEARTBEAT.ino
  *
  * Description:
  * Demonstrates stopping safely when the MicroBlue app is gone, on the Arduino

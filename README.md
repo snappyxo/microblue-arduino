@@ -229,31 +229,30 @@ Manages BLE communication and message parsing. One class, two transports.
 
 ## Examples
 
-Open them from **File > Examples > MicroBlue** in the Arduino IDE.
+Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each name starts with its board; `READ` examples act on messages from the app, `WRITE` examples send messages to the app.
 
 ### UNO R3 with HM-10 (SoftwareSerial on pins 7/8)
 
-- **UNO_R3_LED** - Simple LED on/off control
-- **UNO_R3_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
-- **UNO_R3_RGB_LED** - RGB LED color control from three sliders
-- **HM10_BLE_READ_LED** - Minimal read example: toggle the onboard LED from the app
-- **HM10_BLE_WRITE_BUTTON** - Send button presses and releases to the app
-- **HM10_BLE_WRITE_REPEAT** - Send an alternating 1/0 value every second
-- **HM10_BLE_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
+- **UNO_R3_READ_LED** - Simple LED on/off control
+- **UNO_R3_READ_RGB_LED** - RGB LED color control from three sliders
+- **UNO_R3_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
+- **UNO_R3_WRITE_BUTTON** - Send button presses and releases to the app
+- **UNO_R3_WRITE_REPEAT** - Send an alternating 1/0 value every second (no wiring needed)
+- **UNO_R3_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
 
 ### UNO R4 Minima with HM-10 (Serial1 on pins 0/1)
 
-- **UNO_R4_MINIMA_LED** - Simple LED on/off control
-- **UNO_R4_MINIMA_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
-- **UNO_R4_MINIMA_RGB_LED** - RGB LED color control from three sliders
+- **UNO_R4_MINIMA_READ_LED** - Simple LED on/off control
+- **UNO_R4_MINIMA_READ_RGB_LED** - RGB LED color control from three sliders
+- **UNO_R4_MINIMA_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 
 ### UNO R4 WiFi with built-in BLE (no HM-10)
 
-- **UNO_R4_WIFI_LED** - Simple LED on/off control
-- **UNO_R4_WIFI_SERVO** - Servo control from a slider
+- **UNO_R4_WIFI_READ_LED** - Simple LED on/off control
+- **UNO_R4_WIFI_READ_SERVO** - Servo control from a slider
+- **UNO_R4_WIFI_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 - **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
 - **UNO_R4_WIFI_WRITE_SENSOR** - Send a potentiometer's reading and voltage four times a second
-- **UNO_R4_WIFI_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
 
 ### Utilities
 

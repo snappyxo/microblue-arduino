@@ -2,7 +2,12 @@
 
 ## 2.1.0 (unreleased)
 
-- New examples: `UNO_R4_WIFI_HEARTBEAT`, `UNO_R3_HEARTBEAT`, `UNO_R4_MINIMA_HEARTBEAT` (a Switch runs a "motor", the onboard LED, which stops when the heartbeat is lost and stays stopped until switched on again), and `UNO_R4_WIFI_WRITE_SENSOR` (a potentiometer's reading and voltage, four times a second).
+- Examples renamed to `BOARD_READ_*` (acts on messages from the app) or `BOARD_WRITE_*` (sends to the app), one set per UNO board. `HM10_BLE_READ_LED` was removed; it was the same as `UNO_R3_READ_LED`. Old → new:
+  - `UNO_R3_LED` → `UNO_R3_READ_LED`, `UNO_R3_RGB_LED` → `UNO_R3_READ_RGB_LED`
+  - `HM10_BLE_WRITE_BUTTON` → `UNO_R3_WRITE_BUTTON`, `HM10_BLE_WRITE_REPEAT` → `UNO_R3_WRITE_REPEAT`, `HM10_BLE_WRITE_ULTRASONIC_SENSOR` → `UNO_R3_WRITE_ULTRASONIC_SENSOR`
+  - `UNO_R4_MINIMA_LED` → `UNO_R4_MINIMA_READ_LED`, `UNO_R4_MINIMA_RGB_LED` → `UNO_R4_MINIMA_READ_RGB_LED`
+  - `UNO_R4_WIFI_LED` → `UNO_R4_WIFI_READ_LED`, `UNO_R4_WIFI_SERVO` → `UNO_R4_WIFI_READ_SERVO`
+- New examples: `UNO_R4_WIFI_READ_HEARTBEAT`, `UNO_R3_READ_HEARTBEAT`, `UNO_R4_MINIMA_READ_HEARTBEAT` (a Switch runs a "motor", the onboard LED, which stops when the heartbeat is lost and stays stopped until switched on again), and `UNO_R4_WIFI_WRITE_SENSOR` (a potentiometer's reading and voltage, four times a second).
 - `write()` takes numbers too: `write("a0", analogRead(A0))` sends `512`, `write("temp", 21.456, 1)` sends `21.5`, and a `char` is sent as the character. No more `String(...)` around values.
 - New `heartbeatLost()` and `setHeartbeatTimeout(ms)`: stop motors when the MicroBlue app's heartbeat stops (phone out of range, app closed or in the background). True once nothing has arrived for 1 s after heartbeats were arriving; never true with apps that send no heartbeats (MicroBlue 1.x, or **Send heartbeat** off), so sketches using it keep working with those.
 - `read()` skips heartbeats `[1][2][3]` and other messages without an ID instead of returning them as empty messages. Sketches that check `hasId()` or compare `msg.id` (all shipped examples) behave as before.

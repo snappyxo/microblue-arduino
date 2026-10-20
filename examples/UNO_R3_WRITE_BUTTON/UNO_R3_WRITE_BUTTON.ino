@@ -1,8 +1,9 @@
 /*
- * HM10_BLE_WRITE_BUTTON.ino
+ * UNO_R3_WRITE_BUTTON.ino
  *
  * Description:
- * Demonstrates sending BLE messages to MicroBlue from a physical button.
+ * Demonstrates sending BLE messages to MicroBlue from a physical button on the
+ * Arduino UNO R3 with an HM-10 module.
  * When the button is pressed, the sketch sends value `Pressed`; when released,
  * it sends value `Released`.
  *

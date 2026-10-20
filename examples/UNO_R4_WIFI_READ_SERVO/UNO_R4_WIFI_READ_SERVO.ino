@@ -1,5 +1,5 @@
 /*
- * UNO_R4_WIFI_SERVO.ino
+ * UNO_R4_WIFI_READ_SERVO.ino
  *
  * Description:
  * Demonstrates controlling a servo motor from the MicroBlue app on the Arduino

@@ -27,23 +27,22 @@ jobs:
             libraries: |
               - source-path: ./
             sketch-paths: |
-              - examples/HM10_BLE_READ_LED
-              - examples/HM10_BLE_WRITE_BUTTON
-              - examples/HM10_BLE_WRITE_REPEAT
-              - examples/HM10_BLE_WRITE_ULTRASONIC_SENSOR
               - examples/Rename_HM10_Bluetooth
-              - examples/UNO_R3_HEARTBEAT
-              - examples/UNO_R3_LED
-              - examples/UNO_R3_RGB_LED
+              - examples/UNO_R3_READ_HEARTBEAT
+              - examples/UNO_R3_READ_LED
+              - examples/UNO_R3_READ_RGB_LED
+              - examples/UNO_R3_WRITE_BUTTON
+              - examples/UNO_R3_WRITE_REPEAT
+              - examples/UNO_R3_WRITE_ULTRASONIC_SENSOR
           - name: UNO R4 Minima
             fqbn: arduino:renesas_uno:minima
             platform: arduino:renesas_uno
             libraries: |
               - source-path: ./
             sketch-paths: |
-              - examples/UNO_R4_MINIMA_HEARTBEAT
-              - examples/UNO_R4_MINIMA_LED
-              - examples/UNO_R4_MINIMA_RGB_LED
+              - examples/UNO_R4_MINIMA_READ_HEARTBEAT
+              - examples/UNO_R4_MINIMA_READ_LED
+              - examples/UNO_R4_MINIMA_READ_RGB_LED
           - name: UNO R4 WiFi
             fqbn: arduino:renesas_uno:unor4wifi
             platform: arduino:renesas_uno
@@ -52,9 +51,9 @@ jobs:
               - name: ArduinoBLE
               - name: Servo
             sketch-paths: |
-              - examples/UNO_R4_WIFI_HEARTBEAT
-              - examples/UNO_R4_WIFI_LED
-              - examples/UNO_R4_WIFI_SERVO
+              - examples/UNO_R4_WIFI_READ_HEARTBEAT
+              - examples/UNO_R4_WIFI_READ_LED
+              - examples/UNO_R4_WIFI_READ_SERVO
               - examples/UNO_R4_WIFI_WRITE_BUTTON
               - examples/UNO_R4_WIFI_WRITE_SENSOR
 

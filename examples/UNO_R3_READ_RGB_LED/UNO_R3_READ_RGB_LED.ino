@@ -1,5 +1,5 @@
 /*
- * UNO_R4_MINIMA_RGB_LED.ino
+ * UNO_R3_READ_RGB_LED.ino
  *
  * Description:
  * Arduino sketch that controls an RGB LED based on Bluetooth Low Energy (BLE) messages.
@@ -12,8 +12,14 @@
 
 #include "MicroBlue.h"
 
+// Define BLE communication pins and create software serial for BLE
+#include "SoftwareSerial.h"
+const int rXPin = 7;
+const int tXPin = 8;
+SoftwareSerial SSerial(rXPin, tXPin);
+
 // Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(Serial1);
+MicroBlueManager manager(SSerial);
 
 // Pin declarations for RGB LED
 const int redLED = 9;     // Red LED pin
@@ -22,7 +28,7 @@ const int blueLED = 11;   // Blue LED pin
 
 void setup() {
   Serial.begin(9600);         // Initialize USB serial communication
-  Serial1.begin(9600);        // Initialize hardware serial for BLE communication
+  SSerial.begin(9600);        // Initialize software serial for BLE communication
   manager.begin();            // Initialize MicroBlue messaging
   pinMode(redLED, OUTPUT);    // Set red LED pin as output
   pinMode(greenLED, OUTPUT);  // Set green LED pin as output

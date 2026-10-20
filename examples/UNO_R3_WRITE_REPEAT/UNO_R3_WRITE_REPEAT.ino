@@ -1,8 +1,9 @@
 /*
- * HM10_BLE_WRITE_REPEAT.ino
+ * UNO_R3_WRITE_REPEAT.ino
  *
  * Description:
- * Demonstrates continuously sending BLE values using `MicroBlueManager::write`.
+ * Demonstrates continuously sending BLE values using `MicroBlueManager::write`
+ * on the Arduino UNO R3 with an HM-10 module.
  * The sketch alternates between sending `1` and `0` with a fixed delay.
  *
  * Wiring:

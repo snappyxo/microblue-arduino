@@ -1,10 +1,10 @@
 /*
- * HM10_BLE_READ_LED.ino
+ * UNO_R3_READ_LED.ino
  *
  * Description:
- * Demonstrates reading BLE commands from an HM-10 module using `MicroBlueManager`
- * and toggling the onboard LED. The sketch parses incoming MicroBlue
- * messages (`b0` with value `1` or `0`) and applies the LED state accordingly.
+ * Arduino sketch that utilizes the `MicroBlueManager` class to receive and interpret BLE messages
+ * for device control, such as turning an LED on or off based on message data. Initializes BLE and
+ * serial communication for message handling.
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
@@ -45,11 +45,9 @@ void loop() {
     // Control LED based on message content
     if (msg.id == "b0") {
       if (msg.value == "1") {
-        digitalWrite(LED, HIGH);   // Turn LED on
-        Serial.println("LED ON");  // Debug output
+        digitalWrite(LED, HIGH);  // Turn LED on
       } else if (msg.value == "0") {
-        digitalWrite(LED, LOW);     // Turn LED off
-        Serial.println("LED OFF");  // Debug output
+        digitalWrite(LED, LOW);  // Turn LED off
       }
     }
   }

@@ -1,10 +1,11 @@
 /*
- * UNO_R3_LED.ino
+ * UNO_R4_WIFI_READ_LED.ino
  *
  * Description:
- * Arduino sketch that utilizes the `MicroBlueManager` class to receive and interpret BLE messages
- * for device control, such as turning an LED on or off based on message data. Initializes BLE and
- * serial communication for message handling.
+ * Demonstrates reading BLE commands on the Arduino UNO R4 WiFi using its built-in
+ * BLE radio via `MicroBlueManager` (no HM-10 module needed) and toggling the
+ * onboard LED. The sketch parses incoming MicroBlue messages (`b0` with value `1`
+ * or `0`) and applies the LED state accordingly.
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
@@ -12,22 +13,22 @@
 
 #include "MicroBlue.h"
 
-// Define BLE communication pins and create software serial for BLE
-#include "SoftwareSerial.h"
-const int rXPin = 7;
-const int tXPin = 8;
-SoftwareSerial SSerial(rXPin, tXPin);
-
-// Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(SSerial);
+// Create an instance of the MicroBlueManager for the built-in BLE radio
+// (no constructor argument = use the board's own radio instead of an HM-10)
+MicroBlueManager manager;
 
 // LED pin for onboard LED
 const int LED = 13;
 
 void setup() {
-  Serial.begin(9600);    // Initialize USB serial communication
-  SSerial.begin(9600);   // Initialize software serial for BLE communication
-  manager.begin();       // Initialize MicroBlue messaging
+  Serial.begin(9600);  // Initialize USB serial communication
+
+  // Initialize built-in BLE and start advertising as "UNO R4 WIFI"
+  if (!manager.begin("UNO R4 WIFI")) {
+    Serial.println("Starting Bluetooth® Low Energy failed!");
+  }
+  Serial.println("BLE LED Peripheral, waiting for connections....");
+
   pinMode(LED, OUTPUT);  // Set the LED pin as an output
 }
 
