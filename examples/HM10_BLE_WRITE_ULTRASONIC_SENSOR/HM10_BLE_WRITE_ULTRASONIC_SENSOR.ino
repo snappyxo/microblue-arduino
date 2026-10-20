@@ -33,7 +33,9 @@ MicroBlueManager manager(SSerial);
 const int TRIG_PIN = 9;
 const int ECHO_PIN = 10;
 
-// Message ID and measurement interval
+// Message ID and measurement interval. SoftwareSerial can't receive while it
+// sends, so if this sketch also takes commands from the app, send less often
+// (see "Sending and Receiving at Once on the UNO R3" in the README).
 const char* SENSOR_ID = "us0";
 const unsigned long MEASURE_DELAY_MS = 100;
 

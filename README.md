@@ -53,6 +53,14 @@ The UNO R3 has a single hardware UART, which is used for USB, so the HM-10 examp
 
 The HM-10 module ships with a default baud rate of 9600, which is what every example uses.
 
+### Sending and Receiving at Once on the UNO R3
+
+`SoftwareSerial` can't receive while it sends. Bytes the app sends while the board is sending a message are garbled, and a garbled message is lost, whether it is a command or a heartbeat. In a test with the board sending about 5 messages a second while the app was connected, about 1 in 8 heartbeats was lost (still far from tripping a 1 s heartbeat timeout). If your sketch sends to the app while you drive it:
+
+- Send only what you need, no more often than needed. A few times a second is plenty for a display.
+- Or use [AltSoftSerial](https://www.pjrc.com/teensy/td_libs_AltSoftSerial.html), which sends and receives at the same time: on the UNO, wire the HM-10's TXD to pin 8 and RXD to pin 9, and pass the `AltSoftSerial` to `MicroBlueManager`. It uses Timer1, which the Servo library also needs on the UNO, so the two can't be combined.
+- Or use a board with a second hardware serial port, such as the UNO R4 Minima (`Serial1`, pins 0 and 1).
+
 ## Usage
 
 ### Basic Example - LED Control
@@ -145,7 +153,7 @@ manager.write("a0", analogRead(A0));  // e.g. "512"
 manager.write("temp", 21.456, 1);     // "21.5" (1 digit after the point)
 ```
 
-Keep an ID and value together under about 95 characters, and send no faster than you need: an HM-10 at 9600 baud manages roughly 10–20 messages a second.
+Keep an ID and value together under about 95 characters, and send no faster than you need: an HM-10 at 9600 baud manages roughly 10–20 messages a second, the UNO R4 WiFi's built-in BLE more. On an UNO R3 with `SoftwareSerial`, sending also costs some of what the app sends (see [Sending and Receiving at Once on the UNO R3](#sending-and-receiving-at-once-on-the-uno-r3)).
 
 ### Stop Safely When the App Is Gone
 
