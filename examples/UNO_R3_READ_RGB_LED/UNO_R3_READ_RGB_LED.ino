@@ -2,9 +2,17 @@
  * UNO_R3_READ_RGB_LED.ino
  *
  * Description:
- * Arduino sketch that controls an RGB LED based on Bluetooth Low Energy (BLE) messages.
- * The `MicroBlueManager` is used to receive and process BLE commands to adjust the brightness
- * of the red, green, and blue components of the LED. Each color is controlled using PWM.
+ * Arduino sketch that sets the color of an RGB LED from the MicroBlue app's
+ * Color control, on the Arduino UNO R3 with an HM-10 module. Each tap on a
+ * color button sends `r,g,b` with each part 0-255 (e.g. `255,0,0` for red),
+ * which sets the brightness of the LED's red, green and blue parts with PWM.
+ * In the app, add a Color control with ID `c0` to the Panel.
+ *
+ * Wiring:
+ * - HM-10 TXD -> Arduino pin 7 (RX)
+ * - HM-10 RXD -> Arduino pin 8 (TX)
+ * - RGB LED (common cathode) red, green, blue -> pins 9, 10, 11, each
+ *   through a 220 ohm resistor; the common (longest) leg -> GND
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
@@ -26,6 +34,9 @@ const int redLED = 9;     // Red LED pin
 const int greenLED = 10;  // Green LED pin
 const int blueLED = 11;   // Blue LED pin
 
+// Message ID of the Color control in the app's Panel
+const char* COLOR_ID = "c0";
+
 void setup() {
   Serial.begin(9600);         // Initialize USB serial communication
   SSerial.begin(9600);        // Initialize software serial for BLE communication
@@ -46,22 +57,20 @@ void loop() {
       Serial.println(msg.toString());
     }
 
-    // Control the LED based on the received ID
-    if (msg.id == "sl0") {
-      // Map the received value (0-100) to PWM range (0-255) for red LED
-      int value = msg.value.toInt();
-      int redlight = map(value, 0, 100, 0, 255);
-      analogWrite(redLED, redlight);  // Adjust red LED brightness
-    } else if (msg.id == "sl1") {
-      // Map the received value (0-100) to PWM range (0-255) for blue LED
-      int value = msg.value.toInt();
-      int bluelight = map(value, 0, 100, 0, 255);
-      analogWrite(blueLED, bluelight);  // Adjust blue LED brightness
-    } else if (msg.id == "sl2") {
-      // Map the received value (0-100) to PWM range (0-255) for green LED
-      int value = msg.value.toInt();
-      int greenlight = map(value, 0, 100, 0, 255);
-      analogWrite(greenLED, greenlight);  // Adjust green LED brightness
+    // Set the LED's color from the Color control's "r,g,b"
+    if (msg.id == COLOR_ID) {
+      int firstComma = msg.value.indexOf(',');
+      int secondComma = msg.value.indexOf(',', firstComma + 1);
+      if (firstComma > 0 && secondComma > firstComma) {
+        int red = msg.value.substring(0, firstComma).toInt();
+        int green = msg.value.substring(firstComma + 1, secondComma).toInt();
+        int blue = msg.value.substring(secondComma + 1).toInt();
+
+        // 0-255 is already PWM's range. For a common-anode LED, write 255 - value.
+        analogWrite(redLED, red);
+        analogWrite(greenLED, green);
+        analogWrite(blueLED, blue);
+      }
     }
   }
 }
