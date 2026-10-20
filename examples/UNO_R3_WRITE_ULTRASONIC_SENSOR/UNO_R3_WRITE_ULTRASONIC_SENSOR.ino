@@ -77,7 +77,7 @@ void loop() {
       long distanceCm = duration / 58;
 
       // Send the distance value over BLE
-      manager.write(SENSOR_ID, String(distanceCm));
+      manager.write(SENSOR_ID, distanceCm);
       Serial.print("Distance: ");
       Serial.print(distanceCm);
       Serial.println(" cm");
