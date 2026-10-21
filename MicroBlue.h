@@ -114,9 +114,11 @@ public:
   // True once the app's heartbeat has stopped (the phone went out of range,
   // the app was closed or put in the background): heartbeats were arriving,
   // but nothing has arrived for the heartbeat timeout. Stays true until the
-  // app sends again. Stop motors when it is true.
+  // app sends anything again; then it waits for a new heartbeat before it can
+  // be true again. Stop motors when it is true.
   // Never true with an app that sends no heartbeats (MicroBlue 1.x, or "Send
   // heartbeat" turned off), so sketches using it keep working with those.
+  // Turning "Send heartbeat" off while connected makes it true once.
   // What arrives is seen by read(), so call read() in every loop().
   bool heartbeatLost();
 

@@ -173,8 +173,8 @@ void loop() {
 }
 ```
 
-- It turns true once nothing has arrived for 1 s and stays true until the app sends again. Change the time with `manager.setHeartbeatTimeout(ms)`; keep it at 1000 ms or more, since single heartbeats can arrive a few hundred milliseconds late near the edge of range.
-- It never turns true with an app that sends no heartbeats — MicroBlue 1.x, or the app with **Send heartbeat** turned off — so the same sketch keeps working with those (without the safe stop).
+- It turns true once nothing has arrived for 1 s and stays true until the app sends anything again (a heartbeat or a message). After that it waits for a new heartbeat before it can turn true again. Change the time with `manager.setHeartbeatTimeout(ms)`; keep it at 1000 ms or more, since single heartbeats can arrive a few hundred milliseconds late near the edge of range.
+- It never turns true with an app that sends no heartbeats — MicroBlue 1.x, or the app with **Send heartbeat** turned off — so the same sketch keeps working with those (without the safe stop). Turning **Send heartbeat** off while connected looks the same as the app going away, so the board stops once, then follows the app's messages without the safe stop.
 - Call `read()` in every `loop()`: that is where heartbeats are taken in. `read()` never returns them.
 
 ## Message Protocol
