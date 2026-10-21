@@ -1,11 +1,15 @@
 /*
- * UNO_R4_WIFI_SERVO.ino
+ * UNO_R4_MINIMA_READ_SERVO.ino
  *
  * Description:
  * Demonstrates controlling a servo motor from the MicroBlue app on the Arduino
- * UNO R4 WiFi using its built-in BLE radio via `MicroBlueManager` (no HM-10
- * module needed). A slider message (`sl0` with value 0-100) is mapped to the
- * servo angle range.
+ * UNO R4 Minima with an HM-10 module on Serial1. A Slider message (`sl0` with
+ * value 0-100) is mapped to the servo angle range.
+ *
+ * Wiring:
+ * - HM-10 TXD -> Arduino pin 0 (RX, Serial1)
+ * - HM-10 RXD -> Arduino pin 1 (TX, Serial1)
+ * - Servo signal -> A0, power -> 5V, ground -> GND
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
@@ -14,22 +18,16 @@
 #include "MicroBlue.h"
 #include <Servo.h>
 
-// Create an instance of the MicroBlueManager for the built-in BLE radio
-// (no constructor argument = use the board's own radio instead of an HM-10)
-MicroBlueManager manager;
+// Create an instance of the MicroBlueManager for managing messages
+MicroBlueManager manager(Serial1);
 
 const int SERVO_PIN = A0;  // Servo signal pin
 Servo myServo;             // Servo instance for motor control
 
 void setup() {
-  Serial.begin(9600);  // Initialize USB serial communication
-
-  // Initialize built-in BLE and start advertising as "UNO R4 WIFI"
-  if (!manager.begin("UNO R4 WIFI")) {
-    Serial.println("Starting Bluetooth® Low Energy failed!");
-  }
-  Serial.println("BLE Servo Peripheral, waiting for connections....");
-
+  Serial.begin(9600);         // Initialize USB serial communication
+  Serial1.begin(9600);        // Initialize hardware serial for BLE communication
+  manager.begin();            // Initialize MicroBlue messaging
   myServo.attach(SERVO_PIN);  // Attach servo to specified pin
 }
 

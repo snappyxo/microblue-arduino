@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.0 (2026-10-21)
+
+**Upgrading from 2.0.0.** `msg.value` is now exactly what the app sent. Earlier versions lowercased it and removed its spaces, so the Text control's `Hello World` arrived as `helloworld`. Only text from the Text control is affected; every other control sends numbers. A sketch that compares typed text, such as `msg.value == "on"`, no longer matches `On` (the phone's keyboard may capitalize the first letter) or `ON`: compare with `msg.value.equalsIgnoreCase("on")` instead.
+
+- Examples reorganized: one folder per board (`UNO_R3`, `UNO_R4_MINIMA`, `UNO_R4_WIFI`), each with the same six examples named `BOARD_READ_*` (acts on messages from the app) or `BOARD_WRITE_*` (sends to the app): `READ_LED`, `READ_RGB_LED`, `READ_SERVO`, `READ_DRIVE`, `WRITE_BUTTON`, `WRITE_ULTRASONIC_SENSOR`. The HM-10 configuration tool moved to `Utilities/Rename_HM10_Bluetooth`. Old → new:
+  - `UNO_R3_LED` → `UNO_R3/UNO_R3_READ_LED`, `UNO_R3_RGB_LED` → `UNO_R3/UNO_R3_READ_RGB_LED`
+  - `HM10_BLE_WRITE_BUTTON` → `UNO_R3/UNO_R3_WRITE_BUTTON`, `HM10_BLE_WRITE_ULTRASONIC_SENSOR` → `UNO_R3/UNO_R3_WRITE_ULTRASONIC_SENSOR`
+  - `UNO_R4_MINIMA_LED` → `UNO_R4_MINIMA/UNO_R4_MINIMA_READ_LED`, `UNO_R4_MINIMA_RGB_LED` → `UNO_R4_MINIMA/UNO_R4_MINIMA_READ_RGB_LED`
+  - `UNO_R4_WIFI_LED` → `UNO_R4_WIFI/UNO_R4_WIFI_READ_LED`, `UNO_R4_WIFI_SERVO` → `UNO_R4_WIFI/UNO_R4_WIFI_READ_SERVO`, `UNO_R4_WIFI_WRITE_BUTTON` → `UNO_R4_WIFI/UNO_R4_WIFI_WRITE_BUTTON`
+  - Removed: `HM10_BLE_READ_LED` (the same as `UNO_R3_READ_LED`) and `HM10_BLE_WRITE_REPEAT` (sending on a timer is shown by the ultrasonic examples)
+- New examples: `READ_DRIVE` for every board drives a two-wheeled robot from the app's D-Pad, Joystick or Tilt: `x,y` is mixed into left and right speeds in a `setMotors()` to fill in (without motors the speeds go to the Serial Monitor and the onboard LED lights while moving), and the motors stop when the heartbeat stops. Also new: `READ_SERVO` for the UNO R3 and R4 Minima, `READ_RGB_LED` for the R4 WiFi, `WRITE_BUTTON` for the R4 Minima, `WRITE_ULTRASONIC_SENSOR` for both R4 boards.
+- The RGB LED examples take their color from the app's Color control (`c0`, `r,g,b` with each part 0-255) instead of three Sliders. The Color control needs the MicroBlue app 2.0.
+- The ultrasonic examples send the distance with one digit after the point (`42.5`), ten times a second on a `millis()` timer. Every example now keeps its work inside `if (manager.isConnected())` and waits with `millis()` instead of `delay()`, so the loop stays free to read from the app.
+- README: new sections on stopping safely with the heartbeat, on sending and receiving at once on the UNO R3 (SoftwareSerial), and on send rates.
+- `write()` takes numbers too: `write("a0", analogRead(A0))` sends `512`, `write("temp", 21.456, 1)` sends `21.5`, and a `char` is sent as the character. No more `String(...)` around values.
+- New `heartbeatLost()` and `setHeartbeatTimeout(ms)`: stop motors when the MicroBlue app's heartbeat stops (phone out of range, app closed or in the background). True once nothing has arrived for 1 s after heartbeats were arriving; never true with apps that send no heartbeats (MicroBlue 1.x, or **Send heartbeat** off), so sketches using it keep working with those.
+- `read()` skips heartbeats `[1][2][3]` and other messages without an ID instead of returning them as empty messages. Sketches that check `hasId()` or compare `msg.id` (all shipped examples) behave as before.
+- Built-in BLE mode: the app no longer gets back every message it sends. The board now sends on its own characteristic, `19B10002-E8F2-537E-4F6C-D104768A1214`; the app writes to `19B10001-…` as before, which no longer notifies. Sketches need no change. MicroBlue 1.x (which only sends) and the MicroBlue app 2.0 find both automatically.
+- Built-in BLE mode: messages the app sends close together are no longer lost. `read()` used to return only the last one written since the previous call, so when the app sent two messages at once (for example the stop values `512,512` for both drive halves) the first could be dropped. Up to 8 messages now wait for `read()`, oldest first.
+
 ## 2.0.0 (2026-09-13)
 
 **Upgrading from 1.2.0.** Existing sketches compile unchanged, but two things behave differently:

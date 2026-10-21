@@ -29,7 +29,7 @@
 class MicroBlueMessage {
 public:
   String id;     // Message ID, typically a command identifier
-  String value;  // Message value, e.g., "1" or "0" for LED control
+  String value;  // Message value exactly as sent, e.g., "1" or "0" for LED control
 
   MicroBlueMessage();       // Constructor
   bool hasId() const;       // Checks if the ID is valid (non-empty)
@@ -55,9 +55,28 @@ private:
   size_t _frameLength;                // How many bytes of _frame are filled
   bool _inFrame;                      // True once a start delimiter (1) has been seen
 
+  // Heartbeat tracking for heartbeatLost()
+  static const unsigned long DEFAULT_HEARTBEAT_TIMEOUT = 1000;
+  unsigned long _heartbeatTimeout;  // ms without a frame before the heartbeat counts as lost
+  unsigned long _lastFrameAt;       // millis() when the last frame arrived
+  bool _heartbeatSeen;              // A heartbeat arrived since the last silence longer than the timeout
+  void noteFrame(bool heartbeat);
+
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-  BLEService _service;                // BLE service advertised to the MicroBlue app
-  BLECharacteristic _characteristic;  // Characteristic carrying MicroBlue messages
+  BLEService _service;         // BLE service advertised to the MicroBlue app
+  BLECharacteristic _fromApp;  // The app writes its messages here
+  BLECharacteristic _toApp;    // write() notifies the app here
+
+  // Built-in BLE mode: messages the app wrote, oldest first, until read()
+  // returns them. ArduinoBLE can take in several writes in one poll and the
+  // characteristic keeps only the last, so each write is queued as it arrives.
+  static const size_t QUEUE_LENGTH = 8;
+  MicroBlueMessage _queue[QUEUE_LENGTH];
+  size_t _queueStart;  // Index of the oldest queued message
+  size_t _queueCount;  // How many messages are queued
+
+  static MicroBlueManager *_builtinManager;  // The manager that receives the writes
+  static void onWritten(BLEDevice central, BLECharacteristic characteristic);
 #endif
 
 public:
@@ -76,9 +95,37 @@ public:
   bool isConnected();
 
   // Reads and parses a message from the app. Never blocks: returns an empty
-  // message when no complete frame has arrived yet.
+  // message when no complete frame has arrived yet. Heartbeats are taken in
+  // here but never returned.
   MicroBlueMessage read();
   void write(const String &id, const String &value);  // Writes a message to the app
+
+  // Write a number as the value, e.g. write("a0", analogRead(A0)) sends "512".
+  // A char is sent as the character, like Serial.print does: 'a' sends "a".
+  void write(const String &id, char value);
+  void write(const String &id, int value);
+  void write(const String &id, unsigned int value);
+  void write(const String &id, long value);
+  void write(const String &id, unsigned long value);
+  // Write a decimal number with the given digits after the point,
+  // e.g. write("temp", 21.456, 1) sends "21.5"
+  void write(const String &id, double value, unsigned int decimals = 2);
+
+  // True once the app's heartbeat has stopped (the phone went out of range,
+  // the app was closed or put in the background): heartbeats were arriving,
+  // but nothing has arrived for the heartbeat timeout. Stays true until the
+  // app sends anything again; then it waits for a new heartbeat before it can
+  // be true again. Stop motors when it is true.
+  // Never true with an app that sends no heartbeats (MicroBlue 1.x, or "Send
+  // heartbeat" turned off), so sketches using it keep working with those.
+  // Turning "Send heartbeat" off while connected makes it true once.
+  // What arrives is seen by read(), so call read() in every loop().
+  bool heartbeatLost();
+
+  // How long nothing may arrive before heartbeatLost() is true, in ms
+  // (default 1000). The app sends at least every 200 ms, but single
+  // heartbeats can be late by a few hundred ms, so keep it at 1000 or more.
+  void setHeartbeatTimeout(unsigned long ms);
 };
 
 #endif

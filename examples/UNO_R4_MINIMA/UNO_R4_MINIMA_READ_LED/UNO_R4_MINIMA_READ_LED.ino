@@ -1,10 +1,15 @@
 /*
- * UNO_R3_LED.ino
+ * UNO_R4_MINIMA_READ_LED.ino
  *
  * Description:
- * Arduino sketch that utilizes the `MicroBlueManager` class to receive and interpret BLE messages
- * for device control, such as turning an LED on or off based on message data. Initializes BLE and
- * serial communication for message handling.
+ * Demonstrates turning the onboard LED on and off from the MicroBlue app on
+ * the Arduino UNO R4 Minima with an HM-10 module on Serial1. The sketch reads
+ * the Button with ID `b0` (value `1` while pressed, `0` when released) and
+ * sets the LED to match.
+ *
+ * Wiring:
+ * - HM-10 TXD -> Arduino pin 0 (RX, Serial1)
+ * - HM-10 RXD -> Arduino pin 1 (TX, Serial1)
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.
@@ -12,21 +17,15 @@
 
 #include "MicroBlue.h"
 
-// Define BLE communication pins and create software serial for BLE
-#include "SoftwareSerial.h"
-const int rXPin = 7;
-const int tXPin = 8;
-SoftwareSerial SSerial(rXPin, tXPin);
-
 // Create an instance of the MicroBlueManager for managing messages
-MicroBlueManager manager(SSerial);
+MicroBlueManager manager(Serial1);
 
 // LED pin for onboard LED
 const int LED = 13;
 
 void setup() {
   Serial.begin(9600);    // Initialize USB serial communication
-  SSerial.begin(9600);   // Initialize software serial for BLE communication
+  Serial1.begin(9600);   // Initialize hardware serial for BLE communication
   manager.begin();       // Initialize MicroBlue messaging
   pinMode(LED, OUTPUT);  // Set the LED pin as an output
 }

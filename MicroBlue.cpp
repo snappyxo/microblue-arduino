@@ -52,26 +52,36 @@ MicroBlueMessage MicroBlueMessage::parse(const uint8_t *buffer, size_t size) {
     }
   }
 
-  // Clean up the value string by standardizing it
-  msg.value.toLowerCase();     // Convert all characters to lowercase
-  msg.value.replace(" ", "");  // Remove any spaces
-
   return msg;
 }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-// UUIDs the MicroBlue app uses to discover the board and exchange messages
+// UUIDs the MicroBlue app uses to discover the board and exchange messages.
+// Messages from the app and to the app use separate characteristics: when one
+// characteristic notifies, ArduinoBLE notifies every write the app makes back
+// to the app (2.0.0 and earlier echoed each message this way). Older apps
+// find the board's characteristic as the only one they can write to.
 static const char *MICROBLUE_SERVICE_UUID = "19B10000-E8F2-537E-4F6C-D104768A1214";
-static const char *MICROBLUE_CHARACTERISTIC_UUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
+static const char *MICROBLUE_FROM_APP_UUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
+static const char *MICROBLUE_TO_APP_UUID = "19B10002-E8F2-537E-4F6C-D104768A1214";
 #endif
+
+// True for the app's heartbeat: a frame with an empty id and value,
+// [1][2][3]. The end delimiter is absent when the frame was assembled in HM-10 mode.
+static bool isHeartbeat(const uint8_t *frame, size_t length) {
+  return length >= 2 && frame[0] == 1 && frame[1] == 2 && (length == 2 || (length == 3 && frame[2] == 3));
+}
 
 // HM-10 mode: communicates through the module's serial stream
 MicroBlueManager::MicroBlueManager(Stream &s)
-  : _s(&s), _frameLength(0), _inFrame(false)
+  : _s(&s), _frameLength(0), _inFrame(false),
+    _heartbeatTimeout(DEFAULT_HEARTBEAT_TIMEOUT), _lastFrameAt(0), _heartbeatSeen(false)
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
     ,
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100)
+    _fromApp(MICROBLUE_FROM_APP_UUID, BLEWrite | BLEWriteWithoutResponse, 100),
+    _toApp(MICROBLUE_TO_APP_UUID, BLERead | BLENotify, 100),
+    _queueStart(0), _queueCount(0)
 #endif
 {
 }
@@ -80,8 +90,43 @@ MicroBlueManager::MicroBlueManager(Stream &s)
 // Built-in BLE mode: communicates through the board's own radio
 MicroBlueManager::MicroBlueManager()
   : _s(nullptr), _frameLength(0), _inFrame(false),
+    _heartbeatTimeout(DEFAULT_HEARTBEAT_TIMEOUT), _lastFrameAt(0), _heartbeatSeen(false),
     _service(MICROBLUE_SERVICE_UUID),
-    _characteristic(MICROBLUE_CHARACTERISTIC_UUID, BLERead | BLEWrite | BLEWriteWithoutResponse | BLENotify, 100) {}
+    _fromApp(MICROBLUE_FROM_APP_UUID, BLEWrite | BLEWriteWithoutResponse, 100),
+    _toApp(MICROBLUE_TO_APP_UUID, BLERead | BLENotify, 100),
+    _queueStart(0), _queueCount(0) {}
+
+MicroBlueManager *MicroBlueManager::_builtinManager = nullptr;
+
+// Called by ArduinoBLE for each write from the app, while BLE.poll() runs.
+// Notes the frame for heartbeatLost() and queues it if it is a message; when
+// the queue is full the oldest is dropped, so the newest values always get through.
+void MicroBlueManager::onWritten(BLEDevice central, BLECharacteristic characteristic) {
+  (void)central;  // Only the MicroBlue app writes to the characteristic
+  MicroBlueManager *m = _builtinManager;
+  if (!m) {
+    return;
+  }
+
+  const uint8_t *frame = characteristic.value();
+  size_t length = (size_t)characteristic.valueLength();
+  bool heartbeat = isHeartbeat(frame, length);
+  m->noteFrame(heartbeat);
+  if (heartbeat) {
+    return;
+  }
+
+  MicroBlueMessage msg = MicroBlueMessage::parse(frame, length);
+  if (!msg.hasId()) {
+    return;  // Not a message read() could return
+  }
+  if (m->_queueCount == QUEUE_LENGTH) {
+    m->_queueStart = (m->_queueStart + 1) % QUEUE_LENGTH;
+    m->_queueCount--;
+  }
+  m->_queue[(m->_queueStart + m->_queueCount) % QUEUE_LENGTH] = msg;
+  m->_queueCount++;
+}
 #endif
 
 // Starts BLE advertising under the given name. In HM-10 mode the module
@@ -100,7 +145,10 @@ bool MicroBlueManager::begin(const char *deviceName) {
   BLE.setLocalName(deviceName);
   BLE.setDeviceName(deviceName);
   BLE.setAdvertisedService(_service);
-  _service.addCharacteristic(_characteristic);
+  _builtinManager = this;
+  _fromApp.setEventHandler(BLEWritten, onWritten);
+  _service.addCharacteristic(_fromApp);
+  _service.addCharacteristic(_toApp);
   BLE.addService(_service);
   BLE.advertise();
 #endif
@@ -147,12 +195,18 @@ MicroBlueMessage MicroBlueManager::read() {
       }
 
       if (b == 3) {
-        // End delimiter: frame complete. Leave any following bytes in the
-        // serial buffer for the next call.
+        // End delimiter: frame complete. Return a message right away, leaving
+        // any following bytes in the serial buffer for the next call; skip a
+        // heartbeat (or a frame without an id) and keep looking.
         _inFrame = false;
-        MicroBlueMessage msg = MicroBlueMessage::parse(_frame, _frameLength);
+        bool heartbeat = isHeartbeat(_frame, _frameLength);
+        noteFrame(heartbeat);
+        MicroBlueMessage msg = heartbeat ? MicroBlueMessage() : MicroBlueMessage::parse(_frame, _frameLength);
         _frameLength = 0;
-        return msg;
+        if (msg.hasId()) {
+          return msg;
+        }
+        continue;
       }
 
       if (_frameLength >= FRAME_BUFFER_SIZE) {
@@ -169,18 +223,48 @@ MicroBlueMessage MicroBlueManager::read() {
   }
 
 #if defined(MICROBLUE_HAS_BUILTIN_BLE)
-  uint8_t buffer[100];  // Buffer to hold incoming data
-
-  // Service the BLE stack so incoming writes and connection events are
-  // processed even if the sketch never calls isConnected().
+  // Service the BLE stack so incoming writes (queued by onWritten) and
+  // connection events are processed even if the sketch never calls isConnected().
   BLE.poll();
-  if (_characteristic.written()) {
-    int size = _characteristic.readValue(buffer, sizeof(buffer));
-    return MicroBlueMessage::parse(buffer, (size_t)size);
+  if (_queueCount > 0) {
+    MicroBlueMessage msg = _queue[_queueStart];
+    _queueStart = (_queueStart + 1) % QUEUE_LENGTH;
+    _queueCount--;
+    return msg;
   }
 #endif
 
   return MicroBlueMessage();
+}
+
+// Notes a complete frame from the app for heartbeatLost(). A frame after a
+// silence longer than the timeout starts over: the heartbeat can be lost
+// again only once a heartbeat has arrived since that silence. So an app that
+// sends none is never reported lost, even on a board that was used with one
+// that does (an HM-10 board can't tell that the phone changed).
+void MicroBlueManager::noteFrame(bool heartbeat) {
+  unsigned long now = millis();
+  if (now - _lastFrameAt > _heartbeatTimeout) {
+    _heartbeatSeen = false;
+  }
+  if (heartbeat) {
+    _heartbeatSeen = true;
+  }
+  _lastFrameAt = now;
+}
+
+// Reports whether the app's heartbeat has stopped; see MicroBlue.h
+bool MicroBlueManager::heartbeatLost() {
+#if defined(MICROBLUE_HAS_BUILTIN_BLE)
+  if (!_s) {
+    BLE.poll();  // Take in writes that arrived, so they count
+  }
+#endif
+  return _heartbeatSeen && millis() - _lastFrameAt > _heartbeatTimeout;
+}
+
+void MicroBlueManager::setHeartbeatTimeout(unsigned long ms) {
+  _heartbeatTimeout = ms;
 }
 
 // Writes a message to the app using the protocol [1][ID][2][VALUE][3]
@@ -202,6 +286,31 @@ void MicroBlueManager::write(const String &id, const String &value) {
   frame += (char)2;
   frame += value;
   frame += (char)3;
-  _characteristic.writeValue((const uint8_t *)frame.c_str(), frame.length());
+  _toApp.writeValue((const uint8_t *)frame.c_str(), frame.length());
 #endif
+}
+
+// Writes numbers as their text, the format the app's displays read
+void MicroBlueManager::write(const String &id, char value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, int value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, unsigned int value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, long value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, unsigned long value) {
+  write(id, String(value));
+}
+
+void MicroBlueManager::write(const String &id, double value, unsigned int decimals) {
+  write(id, String(value, (unsigned char)decimals));
 }

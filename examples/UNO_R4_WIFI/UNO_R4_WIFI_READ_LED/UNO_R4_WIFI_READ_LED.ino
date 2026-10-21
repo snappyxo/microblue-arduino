@@ -1,11 +1,11 @@
 /*
- * UNO_R4_WIFI_LED.ino
+ * UNO_R4_WIFI_READ_LED.ino
  *
  * Description:
- * Demonstrates reading BLE commands on the Arduino UNO R4 WiFi using its built-in
- * BLE radio via `MicroBlueManager` (no HM-10 module needed) and toggling the
- * onboard LED. The sketch parses incoming MicroBlue messages (`b0` with value `1`
- * or `0`) and applies the LED state accordingly.
+ * Demonstrates turning the onboard LED on and off from the MicroBlue app on
+ * the Arduino UNO R4 WiFi using its built-in BLE radio (no HM-10 module
+ * needed). The sketch reads the Button with ID `b0` (value `1` while pressed,
+ * `0` when released) and sets the LED to match.
  *
  * Developed by A+ Mobile Solutions Inc
  * Licensed under the MIT License. See LICENSE for details.

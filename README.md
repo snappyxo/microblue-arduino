@@ -53,6 +53,14 @@ The UNO R3 has a single hardware UART, which is used for USB, so the HM-10 examp
 
 The HM-10 module ships with a default baud rate of 9600, which is what every example uses.
 
+### Sending and Receiving at Once on the UNO R3
+
+`SoftwareSerial` can't receive while it sends. Bytes the app sends while the board is sending a message are garbled, and a garbled message is lost, whether it is a command or a heartbeat. In a test with the board sending about 5 messages a second while the app was connected, about 1 in 8 heartbeats was lost (still far from tripping a 1 s heartbeat timeout). If your sketch sends to the app while you drive it:
+
+- Send only what you need, no more often than needed. A few times a second is plenty for a display.
+- Or use [AltSoftSerial](https://www.pjrc.com/teensy/td_libs_AltSoftSerial.html), which sends and receives at the same time: on the UNO, wire the HM-10's TXD to pin 8 and RXD to pin 9, and pass the `AltSoftSerial` to `MicroBlueManager`. It uses Timer1, which the Servo library also needs on the UNO, so the two can't be combined.
+- Or use a board with a second hardware serial port, such as the UNO R4 Minima (`Serial1`, pins 0 and 1).
+
 ## Usage
 
 ### Basic Example - LED Control
@@ -130,6 +138,8 @@ void loop() {
 }
 ```
 
+The board advertises the MicroBlue service `19B10000-E8F2-537E-4F6C-D104768A1214`. The app writes its messages to the characteristic `19B10001-E8F2-537E-4F6C-D104768A1214`, and `write()` notifies the app on `19B10002-E8F2-537E-4F6C-D104768A1214`. Before 2.1.0 the library used `19B10001` both ways, which sent every message from the app straight back to it.
+
 The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode too (`begin()` and `isConnected()` are harmless no-ops there, since the HM-10 manages the connection itself), so sketches can share one structure across all boards.
 
 ### Send Data to MicroBlue
@@ -137,7 +147,35 @@ The same `begin()`/`isConnected()`/`read()`/`write()` calls work in HM-10 mode t
 ```cpp
 // Send [1][status][2][ok][3]
 manager.write("status", "ok");
+
+// Numbers are sent as text, which the app's displays read
+manager.write("a0", analogRead(A0));  // e.g. "512"
+manager.write("temp", 21.456, 1);     // "21.5" (1 digit after the point)
 ```
+
+Keep an ID and value together under about 95 characters, and send no faster than you need: an HM-10 at 9600 baud manages roughly 10–20 messages a second, the UNO R4 WiFi's built-in BLE more. On an UNO R3 with `SoftwareSerial`, sending also costs some of what the app sends (see [Sending and Receiving at Once on the UNO R3](#sending-and-receiving-at-once-on-the-uno-r3)).
+
+### Stop Safely When the App Is Gone
+
+The MicroBlue app (2.0 and later) sends a heartbeat, an empty message, whenever it has sent nothing else for 200 ms. When the phone goes out of range, the app is closed or put in the background, the heartbeat stops, but a robot would keep running its last command. `heartbeatLost()` tells you when to stop:
+
+```cpp
+void loop() {
+  if (manager.isConnected()) {
+    MicroBlueMessage msg = manager.read();
+    // ... act on msg ...
+  }
+
+  // Outside the isConnected() check, so it also stops after a disconnect
+  if (manager.heartbeatLost()) {
+    stopMotors();
+  }
+}
+```
+
+- It turns true once nothing has arrived for 1 s and stays true until the app sends anything again (a heartbeat or a message). After that it waits for a new heartbeat before it can turn true again. Change the time with `manager.setHeartbeatTimeout(ms)`; keep it at 1000 ms or more, since single heartbeats can arrive a few hundred milliseconds late near the edge of range.
+- It never turns true with an app that sends no heartbeats — MicroBlue 1.x, or the app with **Send heartbeat** turned off — so the same sketch keeps working with those (without the safe stop). Turning **Send heartbeat** off while connected looks the same as the app going away, so the board stops once, then follows the app's messages without the safe stop.
+- Call `read()` in every `loop()`: that is where heartbeats are taken in. `read()` never returns them.
 
 ## Message Protocol
 
@@ -152,6 +190,8 @@ Messages follow this format:
 - VALUE: Command value (e.g., "1" for on, "0" for off)
 - Byte 3: End delimiter
 
+A message with an empty ID and value, `[1][2][3]`, is the app's heartbeat (see [Stop Safely When the App Is Gone](#stop-safely-when-the-app-is-gone)).
+
 ## API Reference
 
 ### MicroBlueMessage
@@ -160,13 +200,13 @@ Represents a BLE message with an ID and value.
 
 #### Properties
 - `String id` - Message identifier
-- `String value` - Message value
+- `String value` - Message value, exactly as the app sent it. Text from the app's Text control keeps its capitals and spaces; to match typed text whatever its case, compare with `msg.value.equalsIgnoreCase("on")`
 
 #### Methods
 - `bool hasId()` - Returns true if ID is non-empty
 - `bool hasValue()` - Returns true if value is non-empty
 - `String toString()` - Returns formatted string "id:[ID] value:[VALUE]"
-- `static MicroBlueMessage parse(const uint8_t *buffer, size_t size)` - Parses a raw `[1][ID][2][VALUE][3]` frame into a message; the value is lowercased and stripped of spaces
+- `static MicroBlueMessage parse(const uint8_t *buffer, size_t size)` - Parses a raw `[1][ID][2][VALUE][3]` frame into a message (`read()` does this for you)
 
 ### MicroBlueManager
 
@@ -179,36 +219,42 @@ Manages BLE communication and message parsing. One class, two transports.
 #### Methods
 - `bool begin(const char *deviceName = "MicroBlue")` - Start BLE advertising under the given name; returns false if the radio fails to start. In HM-10 mode this is a no-op returning true (the module advertises on its own).
 - `bool isConnected()` - Returns true while the MicroBlue app is connected. In HM-10 mode the connection state isn't visible, so this always returns true.
-- `MicroBlueMessage read()` - Read and parse the latest message; returns an empty message if nothing new arrived
+- `MicroBlueMessage read()` - Read and parse the next message from the app, oldest first; returns an empty message if nothing new arrived. Heartbeats and messages without an ID are skipped. In built-in BLE mode up to 8 messages wait between calls (beyond that the oldest is dropped); in HM-10 mode they wait in the serial buffer.
 - `void write(const String &id, const String &value)` - Send a message to the app in the format `[1][ID][2][VALUE][3]`
+- `void write(const String &id, int/unsigned int/long/unsigned long value)` - Send a whole number as the value, e.g. `write("a0", analogRead(A0))`
+- `void write(const String &id, double value, unsigned int decimals = 2)` - Send a decimal number with `decimals` digits after the point, e.g. `write("temp", 21.456, 1)` sends `21.5`
+- `void write(const String &id, char value)` - Send a single character, e.g. `write("key", 'A')` sends `A`
+- `bool heartbeatLost()` - Returns true once the app's heartbeat has stopped: heartbeats were arriving, but nothing has arrived for the heartbeat timeout. Stays true until the app sends again; never true with an app that sends no heartbeats
+- `void setHeartbeatTimeout(unsigned long ms)` - How long nothing may arrive before `heartbeatLost()` returns true (default 1000 ms)
 
 ## Examples
 
-Open them from **File > Examples > MicroBlue** in the Arduino IDE.
+Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each board has its own folder with the same six examples, which differ only in how the board talks to the app:
 
-### UNO R3 with HM-10 (SoftwareSerial on pins 7/8)
+| Folder | Board | Bluetooth |
+|---|---|---|
+| `UNO_R3` | Arduino UNO R3 | HM-10 on SoftwareSerial, pins 7/8 |
+| `UNO_R4_MINIMA` | Arduino UNO R4 Minima | HM-10 on Serial1, pins 0/1 |
+| `UNO_R4_WIFI` | Arduino UNO R4 WiFi | built-in BLE, no HM-10 |
 
-- **UNO_R3_LED** - Simple LED on/off control
-- **UNO_R3_RGB_LED** - RGB LED color control from three sliders
-- **HM10_BLE_READ_LED** - Minimal read example: toggle the onboard LED from the app
-- **HM10_BLE_WRITE_BUTTON** - Send button presses and releases to the app
-- **HM10_BLE_WRITE_REPEAT** - Send an alternating 1/0 value every second
-- **HM10_BLE_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
+Each example's name is the board followed by what it does. `READ` examples act on messages from the app, `WRITE` examples send messages to the app:
 
-### UNO R4 Minima with HM-10 (Serial1 on pins 0/1)
+| Example | What it does | In the app |
+|---|---|---|
+| `…_READ_LED` | Turns the onboard LED on and off | Button `b0` |
+| `…_READ_RGB_LED` | Sets an RGB LED's color (pins 9, 10, 11) | Color control `c0` (sends `r,g,b`) |
+| `…_READ_SERVO` | Turns a servo (pin A0) | Slider `sl0` |
+| `…_READ_DRIVE` | Mixes `x,y` into left and right motor speeds and stops when the heartbeat stops (no motor wiring needed) | D-Pad, Joystick or Tilt on Drive (`d0`, `d1`) |
+| `…_WRITE_BUTTON` | Sends a physical button's presses and releases (pin 2) | Value display `b0` |
+| `…_WRITE_ULTRASONIC_SENSOR` | Sends HC-SR04 distance ten times a second (pins 9, 10) | Value, Bar or Chart display `us0` |
 
-- **UNO_R4_MINIMA_LED** - Simple LED on/off control
-- **UNO_R4_MINIMA_RGB_LED** - RGB LED color control from three sliders
+For example, the UNO R4 WiFi's drive example is **File > Examples > MicroBlue > UNO_R4_WIFI > UNO_R4_WIFI_READ_DRIVE**.
 
-### UNO R4 WiFi with built-in BLE (no HM-10)
-
-- **UNO_R4_WIFI_LED** - Simple LED on/off control
-- **UNO_R4_WIFI_SERVO** - Servo control from a slider
-- **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
+The board examples are generated by `extras/gen_examples.py` from one template per example, so every board keeps the same examples. To change one, edit its template there and run `python3 extras/gen_examples.py` instead of editing the `.ino` files.
 
 ### Utilities
 
-- **Rename_HM10_Bluetooth** - Rename and configure an HM-10 module over AT commands (GPL v3, see License below)
+- **Utilities/Rename_HM10_Bluetooth** - Rename and configure an HM-10 module over AT commands (GPL v3, see License below)
 
 ## License
 
