@@ -26,25 +26,18 @@ jobs:
             platform: arduino:avr
             libraries: |
               - source-path: ./
+              - name: Servo
             sketch-paths: |
-              - examples/Rename_HM10_Bluetooth
-              - examples/UNO_R3_READ_DRIVE
-              - examples/UNO_R3_READ_HEARTBEAT
-              - examples/UNO_R3_READ_LED
-              - examples/UNO_R3_READ_RGB_LED
-              - examples/UNO_R3_WRITE_BUTTON
-              - examples/UNO_R3_WRITE_REPEAT
-              - examples/UNO_R3_WRITE_ULTRASONIC_SENSOR
+              - examples/UNO_R3
+              - examples/Utilities
           - name: UNO R4 Minima
             fqbn: arduino:renesas_uno:minima
             platform: arduino:renesas_uno
             libraries: |
               - source-path: ./
+              - name: Servo
             sketch-paths: |
-              - examples/UNO_R4_MINIMA_READ_DRIVE
-              - examples/UNO_R4_MINIMA_READ_HEARTBEAT
-              - examples/UNO_R4_MINIMA_READ_LED
-              - examples/UNO_R4_MINIMA_READ_RGB_LED
+              - examples/UNO_R4_MINIMA
           - name: UNO R4 WiFi
             fqbn: arduino:renesas_uno:unor4wifi
             platform: arduino:renesas_uno
@@ -53,12 +46,7 @@ jobs:
               - name: ArduinoBLE
               - name: Servo
             sketch-paths: |
-              - examples/UNO_R4_WIFI_READ_DRIVE
-              - examples/UNO_R4_WIFI_READ_HEARTBEAT
-              - examples/UNO_R4_WIFI_READ_LED
-              - examples/UNO_R4_WIFI_READ_SERVO
-              - examples/UNO_R4_WIFI_WRITE_BUTTON
-              - examples/UNO_R4_WIFI_WRITE_SENSOR
+              - examples/UNO_R4_WIFI
 
     name: Compile for ${{ matrix.name }}
     steps:

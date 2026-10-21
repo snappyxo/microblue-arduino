@@ -229,37 +229,30 @@ Manages BLE communication and message parsing. One class, two transports.
 
 ## Examples
 
-Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each name starts with its board; `READ` examples act on messages from the app, `WRITE` examples send messages to the app.
+Open them from **File > Examples > MicroBlue** in the Arduino IDE. Each board has its own folder with the same six examples, which differ only in how the board talks to the app:
 
-### UNO R3 with HM-10 (SoftwareSerial on pins 7/8)
+| Folder | Board | Bluetooth |
+|---|---|---|
+| `UNO_R3` | Arduino UNO R3 | HM-10 on SoftwareSerial, pins 7/8 |
+| `UNO_R4_MINIMA` | Arduino UNO R4 Minima | HM-10 on Serial1, pins 0/1 |
+| `UNO_R4_WIFI` | Arduino UNO R4 WiFi | built-in BLE, no HM-10 |
 
-- **UNO_R3_READ_LED** - Simple LED on/off control
-- **UNO_R3_READ_RGB_LED** - Set an RGB LED's color from the app's Color control (`c0`, sends `r,g,b`)
-- **UNO_R3_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
-- **UNO_R3_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
-- **UNO_R3_WRITE_BUTTON** - Send button presses and releases to the app
-- **UNO_R3_WRITE_REPEAT** - Send an alternating 1/0 value every second (no wiring needed)
-- **UNO_R3_WRITE_ULTRASONIC_SENSOR** - Send HC-SR04 distance readings to the app
+Each example's name is the board followed by what it does. `READ` examples act on messages from the app, `WRITE` examples send messages to the app:
 
-### UNO R4 Minima with HM-10 (Serial1 on pins 0/1)
+| Example | What it does | In the app |
+|---|---|---|
+| `…_READ_LED` | Turns the onboard LED on and off | Button `b0` |
+| `…_READ_RGB_LED` | Sets an RGB LED's color (pins 9, 10, 11) | Color control `c0` (sends `r,g,b`) |
+| `…_READ_SERVO` | Turns a servo (pin A0) | Slider `sl0` |
+| `…_READ_DRIVE` | Mixes `x,y` into left and right motor speeds and stops when the heartbeat stops (no motor wiring needed) | D-Pad, Joystick or Tilt on Drive (`d0`, `d1`) |
+| `…_WRITE_BUTTON` | Sends a physical button's presses and releases (pin 2) | Value display `b0` |
+| `…_WRITE_ULTRASONIC_SENSOR` | Sends HC-SR04 distance ten times a second (pins 9, 10) | Value, Bar or Chart display `us0` |
 
-- **UNO_R4_MINIMA_READ_LED** - Simple LED on/off control
-- **UNO_R4_MINIMA_READ_RGB_LED** - Set an RGB LED's color from the app's Color control (`c0`, sends `r,g,b`)
-- **UNO_R4_MINIMA_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
-- **UNO_R4_MINIMA_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
-
-### UNO R4 WiFi with built-in BLE (no HM-10)
-
-- **UNO_R4_WIFI_READ_LED** - Simple LED on/off control
-- **UNO_R4_WIFI_READ_SERVO** - Servo control from a slider
-- **UNO_R4_WIFI_READ_HEARTBEAT** - Stop a "motor" (the onboard LED) when the app's heartbeat stops
-- **UNO_R4_WIFI_READ_DRIVE** - Drive from the app's D-Pad, Joystick or Tilt: mix `x,y` into left and right motor speeds and stop when the heartbeat stops (no motor wiring needed)
-- **UNO_R4_WIFI_WRITE_BUTTON** - Send button presses and releases to the app
-- **UNO_R4_WIFI_WRITE_SENSOR** - Send a potentiometer's reading and voltage four times a second
+For example, the UNO R4 WiFi's drive example is **File > Examples > MicroBlue > UNO_R4_WIFI > UNO_R4_WIFI_READ_DRIVE**.
 
 ### Utilities
 
-- **Rename_HM10_Bluetooth** - Rename and configure an HM-10 module over AT commands (GPL v3, see License below)
+- **Utilities/Rename_HM10_Bluetooth** - Rename and configure an HM-10 module over AT commands (GPL v3, see License below)
 
 ## License
 
